@@ -2,7 +2,7 @@
     "name": "lucas-barbosa/lb-crawler-template",
     "autoload": {
         "psr-4": {
-            "LucasBarbosa\\LbCrawlerTemplate\\": "src/"
+            "LucasBarbosa\\LbTradeinnCrawler\\": "src/"
         }
     },
     "authors": [

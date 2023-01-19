@@ -2,7 +2,7 @@
 
 /**
  * @wordpress-plugin
- * Plugin Name:       LB Crawler Template
+ * Plugin Name:       LB TradeInn Crawler
  * Description:       Plugin Description
  * Version:           1.0.0
  * Author:            Lucas Barbosa

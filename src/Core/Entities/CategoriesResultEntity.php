@@ -1,6 +1,6 @@
 <?php
 
-namespace LucasBarbosa\LbCrawlerTemplate\Core\Entities;
+namespace LucasBarbosa\LbTradeinnCrawler\Core\Entities;
 
 class CategoriesResultEntity {
   protected array $categories;

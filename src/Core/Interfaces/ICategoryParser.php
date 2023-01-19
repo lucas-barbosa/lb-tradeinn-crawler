@@ -1,8 +1,8 @@
 <?php
 
-namespace LucasBarbosa\LbCrawlerTemplate\Core\Interfaces;
+namespace LucasBarbosa\LbTradeinnCrawler\Core\Interfaces;
 
-use LucasBarbosa\LbCrawlerTemplate\Core\Entities\CategoryResultEntity;
+use LucasBarbosa\LbTradeinnCrawler\Core\Entities\CategoryResultEntity;
 
 interface ICategoryParser {
   public function getProducts( $data ) : CategoryResultEntity;

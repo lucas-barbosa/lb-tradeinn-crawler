@@ -1,10 +1,10 @@
 <?php
 
-namespace LucasBarbosa\LbCrawlerTemplate\Infrastructure\Crawler;
+namespace LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler;
 
-use LucasBarbosa\LbCrawlerTemplate\Core\Entities\ProductEntity;
-use LucasBarbosa\LbCrawlerTemplate\Core\Interfaces\IProductCrawler;
-use LucasBarbosa\LbCrawlerTemplate\Core\Interfaces\IProductParser;
+use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductEntity;
+use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\IProductCrawler;
+use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\IProductParser;
 
 class ProductCrawler implements IProductCrawler {
   private IProductParser $parser;

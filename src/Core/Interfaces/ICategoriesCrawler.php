@@ -1,8 +1,8 @@
 <?php
 
-namespace LucasBarbosa\LbCrawlerTemplate\Core\Interfaces;
+namespace LucasBarbosa\LbTradeinnCrawler\Core\Interfaces;
 
-use LucasBarbosa\LbCrawlerTemplate\Core\Entities\CategoriesResultEntity;
+use LucasBarbosa\LbTradeinnCrawler\Core\Entities\CategoriesResultEntity;
 
 interface ICategoriesCrawler {
   public function __construct( ICategoriesParser $parser );

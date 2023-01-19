@@ -1,10 +1,10 @@
 <?php
 
-namespace LucasBarbosa\LbCrawlerTemplate\Infrastructure\Crawler;
+namespace LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler;
 
-use LucasBarbosa\LbCrawlerTemplate\Core\Entities\CategoriesResultEntity;
-use LucasBarbosa\LbCrawlerTemplate\Core\Interfaces\ICategoriesCrawler;
-use LucasBarbosa\LbCrawlerTemplate\Core\Interfaces\ICategoriesParser;
+use LucasBarbosa\LbTradeinnCrawler\Core\Entities\CategoriesResultEntity;
+use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\ICategoriesCrawler;
+use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\ICategoriesParser;
 
 class CategoriesCrawler implements ICategoriesCrawler {
   private ICategoriesParser $parser;
