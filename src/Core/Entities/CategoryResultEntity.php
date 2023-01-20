@@ -24,5 +24,11 @@ class CategoryResultEntity {
 
   public function setHasNextPage( bool $hasNextPage ) {
     $this->hasNextPage = $hasNextPage;
+    return $this;
+  }
+
+  public function setProducts( array $products ) {
+    $this->products = $products;
+    return $this;
   }
 }
