@@ -7,7 +7,7 @@ use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\IProductCrawler;
 use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\IProductParser;
 
 class ProductCrawler extends Crawler implements IProductCrawler {
-  private static $HOOK_NAME = 'lb_tradein_product_crawler';
+  private static $HOOK_NAME = 'lb_tradeinn_product_crawler';
   private IProductParser $parser;
 
   public function __construct( IProductParser $parser ) {

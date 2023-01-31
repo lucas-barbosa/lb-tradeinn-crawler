@@ -8,10 +8,15 @@ use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\ICategoriesParser;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\SettingsData;
 
 class CategoriesCrawler extends Crawler implements ICategoriesCrawler  {
+  public static $HOOK_NAME = 'lb_tradein_categories_crawler';
   private ICategoriesParser $parser;
 
   public function __construct( ICategoriesParser $parser ) {
     $this->parser = $parser;
+  }
+
+  public function setHooks() {
+    add_action( self::$HOOK_NAME, array( $this, 'execute' ) );
   }
 
   public function execute() : CategoriesResultEntity {

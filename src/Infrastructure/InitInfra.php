@@ -12,8 +12,10 @@ use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Parser\ProductParser;
 class InitInfra {
   public function load() {
     $categoriesCrawler = new CategoriesCrawler( new CategoriesParser() );
+    $categoriesCrawler->setHooks();
     
     $categoryCrawler = new CategoryCrawler( new CategoryParser() );
+    $categoryCrawler->setHooks();
 
     $productCrawler = new ProductCrawler( new ProductParser() );
     $productCrawler->setHooks();

@@ -149,7 +149,7 @@ class CreateProduct {
 					$term = wp_insert_term( $value, $taxonomy );
 				}
 
-        if ( isset( $term['term_id'] ) && ! empty( $item['id'] ) ) {
+        if ( ! is_wp_error( $term ) &&  isset( $term['term_id'] ) && ! empty( $item['id'] ) ) {
           update_term_meta( $term['term_id'], '_tradeinn_term_name_' . $item['id'], $item['id'] );
         }        
 			}

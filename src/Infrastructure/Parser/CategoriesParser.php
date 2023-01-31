@@ -67,9 +67,18 @@ class CategoriesParser implements ICategoriesParser {
         $categoryName = $childCategoryItem->nodeValue;
         $categoryUrl  = $childCategoryItem->getAttribute( 'href' );
 
+        $pattern = "{\/(\d+)\/s$}";
+        $matches = array();
+        $id = '';
+
+        if ( preg_match($pattern, $categoryUrl, $matches) ) {
+          $id = end( $matches );
+        }
+
         $childs[] = [
           'name'  => $categoryName,
-          'url'   => $categoryUrl
+          'url'   => $categoryUrl,
+          'id'    => $id
         ];
       }
 
