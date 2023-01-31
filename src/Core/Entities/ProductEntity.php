@@ -3,26 +3,23 @@
 namespace LucasBarbosa\LbTradeinnCrawler\Core\Entities;
 
 class ProductEntity {
-  protected array $attributes;
-  protected string $availability;
-  protected string $brand;
-  protected array $categories;
-  protected string $description;
-  protected array $dimensions;
-  protected array $features;
-  protected string $id;
-  protected array $images;
-  protected array $parentStoreProps;
-  protected float $price;
-  protected string $shortDescription;
-  protected string $sku;
-  protected string $title;
-  protected array $variations;
+  protected array $attributes = [];
+  protected string $availability = '';
+  protected string $brand = '';
+  protected array $categories = [];
+  protected string $description = '';
+  protected array $dimensions = [];
+  protected string $id = '';
+  protected array $images = [];
+  protected array $parentStoreProps = [];
+  protected float $price = 0;
+  protected string $sku = '';
+  protected string $title = '';
+  protected array $variations = [];
 
-  public function __construct( string $title, string $price, string $id ) {
+  public function __construct( string $title, string $id ) {
     $this->id = $id;
     $this->title = $title;
-    $this->price = $this->sanitizePrice( $price );
     return $this;
   }
 
@@ -31,6 +28,10 @@ class ProductEntity {
   }
   
   public function getAvailability() {
+    if ( count( $this->variations ) === 1 ) {
+      return $this->variations[0]->getAvailability();
+    }
+
     return $this->availability;
   }
   
@@ -47,13 +48,21 @@ class ProductEntity {
   }
   
   public function getDimensions() {
+    if ( count( $this->variations ) === 1 ) {
+      return $this->variations[0]->getDimensions();
+    }
+
     return $this->dimensions;
   }
-  
-  public function getFeatures() {
-    return $this->features;
+
+  public function getEan() {
+    if ( count( $this->variations ) === 0 ) {
+      return '';
+    }
+
+    return $this->variations[0]->getEan();
   }
-  
+    
   public function getId() {
     return $this->id;
   }
@@ -66,16 +75,24 @@ class ProductEntity {
     return $this->parentStoreProps;
   }
   
+  public function getStoreName() {
+    if ( isset( $this->parentStoreProps['storeName'] ) ) {
+      return $this->parentStoreProps['storeName'];
+    }
+
+    return '';
+  }
+
   public function getPrice() {
+    if ( count( $this->variations ) === 1 ) {
+      return $this->variations[0]->getPrice();
+    }
+
     return $this->price;
   }
-  
-  public function getShortDescription() {
-    return $this->shortDescription;
-  }
-  
+    
   public function getSku() {
-    return $this->sku;
+    return empty( $this->sku ) ? '' : 'TI-' . $this->sku;
   }
   
   public function getTitle() {
@@ -116,11 +133,6 @@ class ProductEntity {
     return $this;
   }
 
-  public function setFeatures( $features ) {
-    $this->features = $features;
-    return $this;
-  }
-
   public function setId( $id ) {
     $this->id = $id;
     return $this;
@@ -132,17 +144,26 @@ class ProductEntity {
   }
 
   public function setParentStoreProps( $parentStoreProps ) {
-    $this->parentStoreProps = $parentStoreProps;
+    $props = [];
+
+    if ( isset ( $parentStoreProps['storeId'] ) ) {
+      $props['storeId'] = $parentStoreProps['storeId'];
+    }
+    
+    if ( isset ( $parentStoreProps['storeName'] ) ) {
+      $props['storeName'] = $parentStoreProps['storeName'];
+    }
+
+    if ( isset ( $parentStoreProps['productId'] ) ) {
+      $props['productId'] = $parentStoreProps['productId'];
+    }
+
+    $this->parentStoreProps = $props;
     return $this;
   }
 
   public function setPrice( $price ) {
-    $this->price = $price;
-    return $this;
-  }
-
-  public function setShortDescription( $shortDescription ) {
-    $this->shortDescription = $shortDescription;
+    $this->price = $this->sanitizePrice( $price );
     return $this;
   }
 
@@ -163,7 +184,7 @@ class ProductEntity {
 
 
   private function sanitizePrice( string $priceString ) : float {
-    $price = (float) sanitize_text_field( $priceString );
+    $price = (float) $priceString;//sanitize_text_field( $priceString );
 		return round( max( $price, 0 ), 2 );
   }
 }

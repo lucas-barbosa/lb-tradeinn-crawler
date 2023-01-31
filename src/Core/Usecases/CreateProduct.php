@@ -1,0 +1,494 @@
+<?php
+
+namespace LucasBarbosa\LbTradeinnCrawler\Core\Usecases;
+
+use Exception;
+use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductAttributeEntity;
+use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductEntity;
+use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductVariationEntity;
+use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\IdMapper;
+use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\SettingsData;
+
+class CreateProduct {
+  private array $taxonomies = [];
+  private string $stock = '';
+  
+  public function setHooks() {
+    add_action( 'lb_tradeinn_crawler_product_loaded', array( $this, 'execute' ) );
+  }
+
+  public function execute( ProductEntity $productData ) {
+    $product = $this->getWoocommerceProduct( $productData->getId(), $productData->getStoreName(), $productData->getVariations() );
+    $product = $this->setRequiredData( $product, $productData );
+
+    $this->saveProduct( $product, true, $productData->getPrice(), $productData->getAvailability() );
+
+    $product = $this->setAdditionalData( $product, $productData );
+  }
+
+  private function addBrand( $brandName ) {
+		$terms_to_add = [];
+
+		$matchingBrand = get_term_by( 'name', $brandName, 'product_brand' );
+
+    if ( ! empty( $matchingBrand->term_id ) ) {
+      $terms_to_add[] = (int) $matchingBrand->term_id;
+    } else {
+			$id = wp_insert_term( $brandName, 'product_brand' );
+
+      if ( ! is_wp_error( $id ) ) {
+        $terms_to_add[] = $id['term_id'];
+			}
+		}
+
+		return $terms_to_add;
+	}
+
+  private function addCategories( $tradeinnCategories ) {
+		if ( ! is_array( $tradeinnCategories ) ) {
+			$tradeinnCategories = [];
+		}
+		
+    $parentId = SettingsData::getParentCategory();
+		$categoryIds = array();
+
+    if ( empty( $parentId ) ) {
+      $parentId = 0;
+    } else {
+      $categoryIds[] = $parentId;
+    }
+    
+		foreach ( $tradeinnCategories as $categoryName ) {
+			$parentName = $parentId !== 0 ? "$parentId-" : '';
+			$categoryCacheName = $parentName . $categoryName;
+			$categoryExists = IdMapper::getTermId( $categoryCacheName );
+			$parentName .= $categoryName . '_';
+
+      if ( $categoryExists ) {
+        $parentId = $categoryExists;
+        $categoryIds[] = $parentId;
+        continue;
+      }
+
+      $terms = get_terms( 'product_cat', array(
+        'name' => $categoryName,
+        'parent' => $parentId,
+        'hide_empty' => false,
+      ) );
+				
+      if ( ! is_wp_error( $terms ) && count( $terms ) > 0 ) {
+        $category = array(
+          'term_id' => $terms[0]->term_id,
+          'name' 		=> $terms[0]->name,
+          'slug' 		=> $terms[0]->slug,
+          'parent' 	=> $terms[0]->parent,
+        );
+      } else {
+        $category = wp_insert_term(
+          $categoryName,
+          'product_cat',
+          array(
+            'description' => '',
+            'parent' => $parentId
+          )
+        );
+      }
+
+      if ( ! is_wp_error( $category ) && isset( $category['term_id'] ) ) {
+        update_term_meta( $category['term_id'], '_tradeinn_term_name_' . $categoryCacheName, $categoryName );
+
+        $parentId = $category['term_id'];
+        $categoryIds[] = $parentId;
+			}
+		}
+		
+		return array_unique( $categoryIds );
+	}
+
+  private function addImages( $imageUrls ) {
+		static $images = array();
+		
+		$imageIds = array();
+		
+		if ( $imageUrls ) {
+			foreach ( $imageUrls as $imageUrl ) {
+				$key = base64_encode( $imageUrl );
+
+				if ( isset( $images[$key] ) ) {
+					$imageIds[] = $images[$key];
+				} else {				
+					$id = Utils::uploadAttachment( $imageUrl, $key );
+
+					if ( $id ) {
+						$images[$key] = $id;
+						$imageIds[] = $id;
+					}					
+				}
+			}
+		}
+				
+		return $imageIds;
+	}
+
+  private function addTaxonomyIfNotExists( $taxonomyLabel, $taxonomySlug, $values = array() ) {
+		$attribute_id = $this->getAttributeTaxonomyId( $taxonomyLabel, $taxonomySlug );
+
+		if ( ! is_wp_error( $attribute_id ) && $values ) {
+			$taxonomy = wc_attribute_taxonomy_name_by_id( (int) $attribute_id );
+
+			foreach ( $values as $item ) {
+        $value = is_array( $item ) ? $item['value'] : $item;
+
+        if ( ! empty( $item['id'] ) && IdMapper::getTermId( $item['id'] ) ) {
+          continue;
+        }
+
+        $term = term_exists( $value, $taxonomy );
+
+				if ( ! $term ) {
+					$term = wp_insert_term( $value, $taxonomy );
+				}
+
+        if ( isset( $term['term_id'] ) && ! empty( $item['id'] ) ) {
+          update_term_meta( $term['term_id'], '_tradeinn_term_name_' . $item['id'], $item['id'] );
+        }        
+			}
+
+      $this->taxonomies[ $taxonomySlug ] = $taxonomy;
+		}
+
+		return $taxonomy;
+	}
+
+  private function createVariations( $product, array $variations ) {
+    $existentVariations = $product->get_children( array(
+			'fields'      => 'ids',
+			'post_status' => array( 'publish', 'private' )
+		), ARRAY_A );
+
+		$syncedVariations = [];
+
+		try {
+			foreach ( $variations as $i => $variation ) {
+				$sku = $product->get_sku();
+
+        $attributes = $this->getWoocommerceVariationAttributes( $variation );
+				$productVariation = $this->getWoocommerceVariation( $product, $attributes );
+
+        $productVariation->set_parent_id( $product->get_id() );
+        
+        if ( $sku ) {
+          $variationSku = $sku . '-' . (string)$i . time();
+          $productVariation->set_sku( $variationSku );
+        }
+
+        $productVariation->set_attributes( $attributes );
+
+        $price = $variation->getPrice();
+        $stock = $variation->getAvailability();
+
+        $this->setPriceAndStock( $productVariation, $price, $stock );
+
+        $productVariation = $this->setDimensions( $productVariation, $variation->getDimensions() );
+
+        $this->saveProduct( $productVariation, true, $price, $stock );
+
+        $syncedVariations[] = $productVariation->get_id();
+			}
+		} catch ( Exception $e ) {
+			/**
+			 * TO-DO: add log
+			 */
+		}
+
+		$this->deleteNonUsedVariations( $existentVariations, $syncedVariations );
+	}
+
+	private function deleteNonUsedVariations( $existentVariations, $newVariations ) {
+		if ( ! empty( $existentVariations ) ) {
+			foreach ( $existentVariations as $variationId ) {
+				if ( ! in_array( $variationId, $newVariations ) ) {
+					wp_delete_post( $variationId, true );
+				}
+			}
+		}
+	}
+
+  private function getAttributeTaxonomyId( $taxonomyLabel, $taxonomySlug ) {
+		$optionName = 'tradeinn_' . $taxonomyLabel;
+		$attributeIdFromCache = get_option( $optionName, '' );
+
+		if ( ! empty( $attributeIdFromCache ) && ! is_null( wc_get_attribute( $attributeIdFromCache ) ) ) {
+			return $attributeIdFromCache;
+		}
+
+		$attributeIdFromCache = get_option( 'sp_tradeinn_' . $taxonomyLabel, '' );
+
+		if ( ! empty( $attributeIdFromCache ) && ! is_null( wc_get_attribute( $attributeIdFromCache ) ) ) {
+			return $attributeIdFromCache;
+		}
+
+		$attributeFromSlug = wc_attribute_taxonomy_id_by_name( $taxonomySlug );
+
+		if ( $attributeFromSlug ) {
+			update_option( 'sp_tradeinn_' . $taxonomyLabel, $attributeFromSlug, false );
+			return $attributeFromSlug;
+		}
+
+		$attribute_labels = wp_list_pluck( wc_get_attribute_taxonomies(), 'attribute_label', 'attribute_name' );
+		$attribute_name   = array_search( $taxonomyLabel, $attribute_labels, true );
+
+		$attributeFromLabel = wc_attribute_taxonomy_id_by_name( $attribute_name );
+
+		if ( $attributeFromLabel ) {
+			update_option( 'sp_tradeinn_' . $taxonomyLabel, $attributeFromLabel, false );
+			return $attributeFromLabel;
+		}
+		
+		$attribute_name = wc_sanitize_taxonomy_name( trim(substr($taxonomyLabel, 0, 27)) );
+
+		$attribute_id = wc_create_attribute(
+			array(
+				'name'         => $taxonomyLabel,
+				'slug'         => $attribute_name,
+				'type'         => 'select',
+				'order_by'     => 'menu_order',
+				'has_archives' => false,
+			)
+		);
+
+		if ( !is_wp_error( $attribute_id ) ) {
+			$taxonomy_name = wc_attribute_taxonomy_name( $attribute_name );
+
+			register_taxonomy(
+				$taxonomy_name,
+				apply_filters( 'woocommerce_taxonomy_objects_' . $taxonomy_name, array( 'product' ) ),
+				apply_filters(
+					'woocommerce_taxonomy_args_' . $taxonomy_name,
+					array(
+						'label' 			 => $taxonomyLabel,
+						'hierarchical' => false,
+						'show_ui'      => false,
+						'query_var'    => true,
+						'rewrite'      => false,
+					)
+				)
+			);
+		}
+
+		update_option( $optionName, $attribute_id, false );
+		
+		return $attribute_id;
+	}
+
+  private function getVariationId( $product, $variationAttributes ) {
+		$data_store = \WC_Data_Store::load( 'product' );
+
+    $attributes = [];
+
+    foreach ( $variationAttributes as $key => $value ) {
+      $attributes[ 'attribute_' . $key ] = $value;
+    }
+
+		return $data_store->find_matching_product_variation( $product, $attributes );
+	}
+
+  private function getWoocommerceProduct( string $id, string $store, array $variations ) {
+    $productId = IdMapper::getProductId( $id, $store );
+		
+		if ( $productId ) {
+			$product = wc_get_product( $productId );		
+
+			if ( $product && 0 < $product->get_parent_id() ) {
+				$productId = $product->get_parent_id();
+			}
+		}
+
+    if ( count( $variations ) > 1 ) {
+			return new \WC_Product_Variable((int) $productId );
+		}
+
+		return new \WC_Product((int) $productId );
+  }
+
+  private function getWoocommerceVariation( $product, $variationAttributes ) {
+		$variation_id = $this->getVariationId( $product, $variationAttributes );
+		$variation = new \WC_Product_Variation( $variation_id );
+		return $variation;
+	}
+
+  private function getWoocommerceVariationAttributes( ProductVariationEntity $product ) {
+    $formattedAttributes = [];
+    $attributes = $product->getAttributes();
+
+    foreach ( $attributes as $attribute ) {
+      $taxName =  wc_attribute_taxonomy_name( wc_sanitize_taxonomy_name( stripslashes( $attribute->getName() ) ) );
+
+      if ( isset( $this->taxonomies[ $taxName ] ) ) {
+        $taxName = $this->taxonomies[ $taxName ];
+      }
+
+      $value = $attribute->getValue()[0];
+
+      $attrValSlug = wc_sanitize_taxonomy_name( sanitize_title( stripslashes( $value ) ) );
+      $formattedAttributes[$taxName] = $attrValSlug;
+    }
+
+    return $formattedAttributes;
+  }
+
+  private function saveProduct( $product, bool $changed, $price, $availability ) {
+    do_action( 'lb_multi_inventory_remove_stock_hooks' );
+
+		if ( $changed ) $product->save();
+
+		$this->setMultinventoryData( $product, $price, $availability );
+
+		do_action( 'lb_multi_inventory_add_stock_hooks' );
+  }
+
+  private function setAdditionalData( $product, ProductEntity $productData ) {
+    $product = $this->setBrand( $product, $productData->getBrand() );
+    $product = $this->setAttributes( $product, $productData->getAttributes() );
+    
+    $variations = $productData->getVariations();
+
+    if ( count( $variations ) > 1 ) {
+      $this->createVariations( $product, $variations );
+    }
+
+    return $product;
+  }
+
+  private function setAttributes( $product, array $attributes ) {
+    $position = 0;
+
+		if ($attributes) {
+			$productAttributes = [];
+
+			foreach ( $attributes as $attribute ) {
+        $attributeName = $attribute->getName();
+        $values = $attribute->getValue();
+				$isVariation = $attribute->isVariation();
+
+				$name = wc_sanitize_taxonomy_name( stripslashes( $attributeName ) );
+				$taxonomy = wc_attribute_taxonomy_name($name); // woocommerce prepend pa_ to each attribute name
+
+				$taxonomy = $this->addTaxonomyIfNotExists( $attributeName, $taxonomy, $values );
+
+        $values = array_map( function ( $value ) {
+          if ( is_array( $value ) ) {
+            return $value['value'];
+          }
+
+          return $value;
+        }, $values );
+
+				if ( $values ) {
+					wp_set_post_terms( $product->get_id(), $values, $taxonomy, false );
+				}
+
+				$productAttributes[ $taxonomy ] = array(
+					'name' => $taxonomy,
+					'value' => $values,
+					'position' => $position++,
+					'is_visible' => 1,
+					'is_variation' => $isVariation,
+					'is_taxonomy' => '1'
+				);
+			}
+
+			update_post_meta( $product->get_id(), '_product_attributes', $productAttributes );
+		}
+
+    return $product;
+  }
+
+  private function setMetaData( $product, ProductEntity $productData ) {
+    $product->update_meta_data( '_lb_gf_gtin', $productData->getEan() );
+    $product->update_meta_data( '_tradeinn_product_id_' . $productData->getId(), $productData->getStoreName() );
+    $product->update_meta_data( '_tradeinn_props', $productData->getParentStoreProps() );
+    return $product;
+  }
+
+  private function setMultinventoryData( $product, $price, $stockStatus ) {
+		if ( empty( $this->stock ) || $product->is_type( 'variable' ) ) {
+			return;
+		}
+
+		do_action( 'lb_multi_inventory_set_stock', $product->get_id(), $this->stock, $price, $stockStatus, $product );
+	}
+
+  private function setRequiredData( $product, ProductEntity $productData ) {
+    $title = $productData->getBrand() . ' ' . $productData->getTitle();
+
+    $product->set_name( trim( $title ) );
+    $product->set_category_ids( $this->addCategories( $productData->getCategories() ) );
+    $product->set_description( $productData->getDescription() );
+    $product->set_sku( $productData->getSku() );
+    
+    $product = $this->setDimensions( $product, $productData->getDimensions() );
+    $product = $this->setImages( $product, $productData->getImages() );
+    $product = $this->setMetaData( $product, $productData );
+
+    $this->setPriceAndStock( $product, $productData->getPrice(), $productData->getAvailability() );
+
+    return $product;
+  }
+
+  private function setBrand( $product, $brand ) {
+		$id = $product->get_id();
+    $brandId = $this->addBrand( $brand );
+
+    wp_set_post_terms( $id, $brandId, 'product_brand' );
+
+		return $product;
+	}
+
+  private function setDimensions( $product, array $dimensions ) {
+    // TODO convert units
+    if ( isset( $dimensions['weight'] ) ) {
+      $product->set_weight( $dimensions['weight'] );
+    }
+
+    if ( isset( $dimensions['height'] ) ) {
+      $product->set_height( $dimensions['height'] );
+    }
+
+    if ( isset( $dimensions['length'] ) ) {
+      $product->set_length( $dimensions['length'] );
+    }
+
+    if ( isset( $dimensions['width'] ) ) {
+      $product->set_width( $dimensions['width'] );
+    }
+
+    return $product;
+  }
+
+  private function setImages( $product, array $images ) {
+    $imageIds = $this->addImages( array_unique( $images ) );
+    $product->set_image_id( count( $imageIds ) > 0 ? array_shift( $imageIds ) : '');
+    $product->set_gallery_image_ids( $imageIds );
+
+    return $product;
+  }
+
+  private function setPriceAndStock( $product, $price, $stockStatus ) {
+		if ( empty ( $this->stock ) ) {
+			$currentPrice = $product->get_meta( '_main_price' );
+      $currentStockAvailability = $product->get_meta( '_main_stock_status' );
+
+			$product->set_regular_price($price);
+			$product->set_stock_status( $stockStatus );
+			$product->update_meta_data( '_main_price', $price );
+			$product->update_meta_data( '_main_stock_status', $stockStatus );
+
+			if ( $currentPrice != $price || $currentStockAvailability != $stockStatus ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}

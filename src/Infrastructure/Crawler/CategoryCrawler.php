@@ -28,6 +28,7 @@ class CategoryCrawler extends Crawler implements ICategoryCrawler  {
     $this->handleNextPage( $result->getHasNextPage(), $props['page'] );
 
     $this->onProductsFound( [
+      'storeId'   => $props['store']['id'],
       'storeName' => $props['store']['name'],
       'products'  => $result->getProducts()
     ] );
@@ -68,6 +69,7 @@ class CategoryCrawler extends Crawler implements ICategoryCrawler  {
   public function onProductsFound( array $result ) {
     foreach ( $result['products'] as $product ) {
       $params = [
+        'storeId' => $result['storeId'],
         'storeName' => $result['storeName'],
         'productId' => $product        
       ];

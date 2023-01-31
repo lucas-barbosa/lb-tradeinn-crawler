@@ -11,6 +11,11 @@ class SettingsData {
     return get_option( self::$options['available_categories'], [] );
   }
   
+  static function getParentCategory() {
+    // TODO
+    return 0;
+  }
+
   static function saveCategories( $categories ) {
     update_option( self::$options['available_categories'], $categories, false );
   }
