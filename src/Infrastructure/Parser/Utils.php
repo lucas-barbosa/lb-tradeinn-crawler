@@ -6,6 +6,19 @@ use DOMDocument;
 use DOMXPath;
 
 class Utils {
+	public static function convertWeightUnitToWoocommerce( $weight ) {
+		$convertedWeight = $weight;
+		$woocommerceUnit = get_option( 'woocommerce_weight_unit' );
+
+		if ( $woocommerceUnit === 'g' ) {
+			$convertedWeight = $weight * 1000;
+		}
+
+		$convertedWeight = round( $convertedWeight, 3 );
+
+		return max( $convertedWeight, 0 );
+	}
+
   private static function getDomObject( $content ) {
 		$dom = new \DOMDocument('1.0', 'UTF-8');
 		

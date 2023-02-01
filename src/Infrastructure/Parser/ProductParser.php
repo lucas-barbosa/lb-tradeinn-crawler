@@ -181,7 +181,7 @@ class ProductParser implements IProductParser {
           'width'  => $product['width'],
           'height' => $product['height'],
           'length' => $product['lenght'],
-          'weight' => $product['peso']
+          'weight' => Utils::convertWeightUnitToWoocommerce( $product['peso'] )
         ])
         ->setEan( $product['ean'] )
         ->setEstimateDate( [
