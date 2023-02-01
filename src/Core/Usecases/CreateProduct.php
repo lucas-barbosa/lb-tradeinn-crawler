@@ -17,7 +17,13 @@ class CreateProduct {
     add_action( 'lb_tradeinn_crawler_product_loaded', array( $this, 'execute' ) );
   }
 
+	private function loadParams() {
+		$this->stock = SettingsData::getStock();
+	}
+
   public function execute( ProductEntity $productData ) {
+		$this->loadParams();
+			
     $product = $this->getWoocommerceProduct( $productData->getId(), $productData->getStoreName(), $productData->getVariations() );
     $product = $this->setRequiredData( $product, $productData );
 

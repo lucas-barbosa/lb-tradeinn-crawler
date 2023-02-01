@@ -44,8 +44,17 @@ class ProductVariationEntity {
     return $this;
   }
 
-  public function setAvailability( $availability ) {
-    $this->availability = $availability;
+  public function setAvailability( $quantity, $deliveryDate, $tradeInnStock, $reservedQuantity ) {
+    $tradeInnQuantity = (int)$tradeInnStock - (int)$reservedQuantity;
+
+    if ( $tradeInnQuantity > 0  || $deliveryDate == 0 ) {
+      $this->availability = 'instock';
+    } else if ( $deliveryDate > 0 ) {
+      $this->availability = 'onbackorder';
+    } else {
+      $this->availability = 'outofstock';
+    }
+
     return $this;
   }
 

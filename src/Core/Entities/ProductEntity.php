@@ -4,7 +4,7 @@ namespace LucasBarbosa\LbTradeinnCrawler\Core\Entities;
 
 class ProductEntity {
   protected array $attributes = [];
-  protected string $availability = '';
+  protected string $availability = 'outofstock';
   protected string $brand = '';
   protected array $categories = [];
   protected string $description = '';
