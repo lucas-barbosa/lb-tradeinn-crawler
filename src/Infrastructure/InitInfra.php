@@ -5,6 +5,7 @@ namespace LucasBarbosa\LbTradeinnCrawler\Infrastructure;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler\CategoriesCrawler;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler\CategoryCrawler;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler\ProductCrawler;
+use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler\RefreshStockCrawler;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler\TranslatorCrawler;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Parser\CategoriesParser;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Parser\CategoryParser;
@@ -25,5 +26,8 @@ class InitInfra {
 
     $translatorCrawler = new TranslatorCrawler( $productParser );
     $translatorCrawler->setHooks();
+
+    $refreshStockCrawler = new RefreshStockCrawler( $productParser );
+    $refreshStockCrawler->setHooks();
   }
 }

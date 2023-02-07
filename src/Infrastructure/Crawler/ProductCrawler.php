@@ -62,7 +62,7 @@ class ProductCrawler extends Crawler implements IProductCrawler {
     do_action( 'lb_tradeinn_crawler_product_loaded', $productData );
   }
 
-  private function getJsonData( $props ) {
+  protected function getJsonData( $props ) {
     $client = $this->getClient();
     
     $response = $client->get( $this->baseUrl . 'index.php', [

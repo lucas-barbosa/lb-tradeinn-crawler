@@ -9,7 +9,7 @@ use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductVariationEntity;
 use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\IProductParser;
 
 class ProductParser implements IProductParser {
-  private DOMXPath $xpath;
+  private ?DOMXPath $xpath;
 
   public function getProduct( $itemProps, array $data ) : ProductEntity {
     $this->xpath = Utils::getXPath( $data['site'] );

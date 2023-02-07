@@ -30,6 +30,10 @@ class Utils {
 	}
 
   static function getXPath( $responseBody ) {
+		if ( empty( $responseBody ) ) {
+			return null;
+		}
+		
     $responseBody = str_replace( '\n', '', $responseBody );
 		$responseBody = preg_replace( '/\s+/', ' ', $responseBody );
 		
@@ -39,7 +43,11 @@ class Utils {
     return $xpath;
   }
 
-  static function getPropertyValue( DOMXPath $xpath, $query, $attribute = 'content' ) {
+  static function getPropertyValue( ?DOMXPath $xpath, $query, $attribute = 'content' ) {
+		if ( is_null( $xpath ) ) {
+			return [];
+		}
+
     $items = $xpath->query( $query );
 
     $response = array();
@@ -52,9 +60,13 @@ class Utils {
     return $response;
   }
 
-  static function getValue( DOMXPath $xpath, $selector, $html = false ) {
+  static function getValue( ?DOMXPath $xpath, $selector, $html = false ) {
 		if ( empty( $selector ) ) {
 			return array();
+		}
+
+		if ( is_null( $xpath ) ) {
+			return [];
 		}
   
 		$items = $xpath->query($selector);

@@ -17,7 +17,7 @@ class CreateProduct {
     add_action( 'lb_tradeinn_crawler_product_loaded', array( $this, 'execute' ) );
   }
 
-	private function loadParams() {
+	protected function loadParams() {
 		$this->stock = SettingsData::getStock();
 	}
 
@@ -360,7 +360,7 @@ class CreateProduct {
     return $formattedAttributes;
   }
 
-  private function saveProduct( $product, bool $changed, $price, $availability ) {
+  protected function saveProduct( $product, bool $changed, $price, $availability ) {
     do_action( 'lb_multi_inventory_remove_stock_hooks' );
 
 		if ( $changed ) $product->save();
@@ -499,7 +499,7 @@ class CreateProduct {
     return $product;
   }
 
-  private function setPriceAndStock( $product, $price, $stockStatus ) {
+  protected function setPriceAndStock( $product, $price, $stockStatus ) {
 		if ( empty ( $this->stock ) ) {
 			$currentPrice = $product->get_meta( '_main_price' );
       $currentStockAvailability = $product->get_meta( '_main_stock_status' );

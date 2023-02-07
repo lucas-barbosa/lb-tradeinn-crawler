@@ -134,6 +134,6 @@ class IdMapper {
 
 	static function setAttributeId( $tradeinnId, $id ) {
 		if ( empty( $tradeinnId ) ) return;
-		update_post( 'tradeinn_attribute_' . $tradeinnId, $id );
+		update_option( 'tradeinn_attribute_' . $tradeinnId, $id );
 	}
 }
