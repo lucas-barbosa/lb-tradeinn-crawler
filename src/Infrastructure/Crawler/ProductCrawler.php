@@ -7,8 +7,8 @@ use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\IProductCrawler;
 use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\IProductParser;
 
 class ProductCrawler extends Crawler implements IProductCrawler {
-  private static $HOOK_NAME = 'lb_tradeinn_product_crawler';
-  private IProductParser $parser;
+  protected static $HOOK_NAME = 'lb_tradeinn_product_crawler';
+  protected IProductParser $parser;
 
   public function __construct( IProductParser $parser ) {
     $this->parser = $parser;
@@ -19,12 +19,16 @@ class ProductCrawler extends Crawler implements IProductCrawler {
     add_action( 'lb_tradeinn_crawler_product_found', array( $this, 'enqueueProduct' ) );
   }
 
-  public function enqueueProduct( $params ) {
-    $has_action = as_has_scheduled_action( self::$HOOK_NAME, array( $params ), $this->groupSlug );
+  public function enqueueProduct( $params, $hook = '' ) {
+    if ( empty( $hook ) ) {
+      $hook = self::$HOOK_NAME;
+    }
+
+    $has_action = as_has_scheduled_action( $hook, array( $params ), $this->groupSlug );
 
     if ( $has_action ) return;
 
-    as_enqueue_async_action( self::$HOOK_NAME, array( $params ), $this->groupSlug );
+    as_enqueue_async_action( $hook, array( $params ), $this->groupSlug );
   }
 
   public function execute( array $productParams ) {
@@ -64,7 +68,7 @@ class ProductCrawler extends Crawler implements IProductCrawler {
     $response = $client->get( $this->baseUrl . 'index.php', [
       'query' => [
         'action'     => 'get_datos_producto',
-        'idioma'     => 'por',
+        'idioma'     => $props['language'],
         'id_tienda'  => $props['storeId'],
         'id_modelo'  => $props['productId'],
         'solo_altas' => 1
@@ -83,7 +87,10 @@ class ProductCrawler extends Crawler implements IProductCrawler {
   private function getSiteData( $props ) {
     $client = $this->getClient();
   
-    $language = $props['language'] === 'por' ? 'pt' : $props['language'];
+    $language = ! isset( $props['language'] ) || $props['language'] === 'por' ? 'pt' :
+      ( $props['language'] === 'eng' ? 'en' :
+        ( $props['language'] === 'spa' ? 'es' : $props['language'] ) );
+        
     $productUrl = $this->baseUrl . $props['storeName']  . '/' . $language . '/-/' . $props['productId'] . '/p';
     
     $response = $client->get( $productUrl );

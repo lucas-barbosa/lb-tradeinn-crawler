@@ -3,6 +3,7 @@
 namespace LucasBarbosa\LbTradeinnCrawler\Core;
 
 use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\CreateProduct;
+use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\CreateTranslation;
 use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\RenderAdminSettings;
 
 class InitCore {
@@ -17,6 +18,9 @@ class InitCore {
   public function load() {
     $createProduct = new CreateProduct();
     $createProduct->setHooks();
+
+    $createTranslation = new CreateTranslation();
+    $createTranslation->setHooks();
 
     if ( is_admin() ) {
       $adminSettings = new RenderAdminSettings( $this->plugin_name, $this->plugin_version );

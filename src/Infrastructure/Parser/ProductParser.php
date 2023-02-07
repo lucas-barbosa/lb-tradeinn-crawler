@@ -17,7 +17,7 @@ class ProductParser implements IProductParser {
     $product = (new ProductEntity( $this->getTitle( $data ), $this->getId( $data ) ))
       ->setAttributes( $this->getAttributes( $data ) )
       ->setBrand( $this->getBrand( $data ) )
-      ->setCategories( $this->getCategories( $itemProps['storeName'], $data ) )
+      ->setCategories( $this->getCategories( $itemProps['storeId'], $itemProps['storeName'], $data ) )
       ->setDescription( $this->getDescription() )
       ->setImages( $this->getImages() )
       ->setSku( $this->getSku() )
@@ -70,8 +70,8 @@ class ProductParser implements IProductParser {
         $rawAttributes['Tamanho'] = [ 'id' => '' ];
       }
 
-      $rawAttributes['Cor']['values'][] = [ 'id' => '', 'value' => $product['color'] ];
-      $rawAttributes['Tamanho']['values'][] = [ 'id' => '', 'value' => $product['talla'] ];
+      $rawAttributes['Cor']['values'][] = [ 'id' => '', 'value' => $product['color'], 'variationId' => $product['id_producte'] ];
+      $rawAttributes['Tamanho']['values'][] = [ 'id' => '', 'value' => $product['talla'], 'variationId' => $product['id_producte'] ];
     }
     
     $result = [];
@@ -91,17 +91,17 @@ class ProductParser implements IProductParser {
     return '';
   }
 
-  private function getCategories( $storeName, $data ) {
+  private function getCategories( $storeId, $storeName, $data ) {
     if ( ! isset( $data['json']['nombre_familia'] ) && ! isset( $data['json']['nombre_subfamilia'] ) ) {
       return [
-        $storeName
+        [ 'name' => $storeName, 'id' => $storeId ]
       ];
     }
 
     $categories = [
-      $storeName,
-      $data['json']['nombre_familia'],
-      $data['json']['nombre_subfamilia'],
+      [ 'name' => $storeName, 'id' => $storeId ],
+      [ 'name' => $data['json']['nombre_familia'], 'id' => $data['json']['id_familia'] ],
+      [ 'name' => $data['json']['nombre_subfamilia'], 'id' => $data['json']['id_subfamilia'] ],
     ];
     
     return array_filter( $categories );
@@ -173,8 +173,8 @@ class ProductParser implements IProductParser {
       $variation = (new ProductVariationEntity())
         ->setId( $product['id_producte'] )
         ->setAttributes( [
-          new ProductAttributeEntity( '695', 'Cor', $product['color'] ),
-          new ProductAttributeEntity( '', 'Tamanho', $product['talla'] ),
+          new ProductAttributeEntity( '695', 'Cor', $product['color'], $product['id_producte'] ),
+          new ProductAttributeEntity( '', 'Tamanho', $product['talla'], $product['id_producte'] ),
         ])
         ->setAvailability( $offer['dispo'], $offer['plazo_entrega'], $product['exist'], $product['stock_reservat'] )
         ->setDimensions( [

@@ -30,6 +30,8 @@ class CreateProduct {
     $this->saveProduct( $product, true, $productData->getPrice(), $productData->getAvailability() );
 
     $product = $this->setAdditionalData( $product, $productData );
+
+		do_action( 'lb_tradeinn_product_created', [ $product->get_id(), $productData->getParentStoreProps() ]);
   }
 
   private function addBrand( $brandName ) {
@@ -64,8 +66,10 @@ class CreateProduct {
       $categoryIds[] = $parentId;
     }
     
-		foreach ( $tradeinnCategories as $categoryName ) {
+		foreach ( $tradeinnCategories as $tradeInnCategory ) {
+			$categoryName = $tradeInnCategory['name'];
 			$parentName = $parentId !== 0 ? "$parentId-" : '';
+
 			$categoryCacheName = $parentName . $categoryName;
 			$categoryExists = IdMapper::getTermId( $categoryCacheName );
 			$parentName .= $categoryName . '_';
@@ -101,6 +105,7 @@ class CreateProduct {
       }
 
       if ( ! is_wp_error( $category ) && isset( $category['term_id'] ) ) {
+				IdMapper::setTermId( $category['term_id'], $tradeInnCategory['id'] );
         update_term_meta( $category['term_id'], '_tradeinn_term_name_' . $categoryCacheName, $categoryName );
 
         $parentId = $category['term_id'];
@@ -136,8 +141,8 @@ class CreateProduct {
 		return $imageIds;
 	}
 
-  private function addTaxonomyIfNotExists( $taxonomyLabel, $taxonomySlug, $values = array() ) {
-		$attribute_id = $this->getAttributeTaxonomyId( $taxonomyLabel, $taxonomySlug );
+  private function addTaxonomyIfNotExists( $id, $taxonomyLabel, $taxonomySlug, $values = array() ) {
+		$attribute_id = $this->getAttributeTaxonomyId( $id, $taxonomyLabel, $taxonomySlug );
 
 		if ( ! is_wp_error( $attribute_id ) && $values ) {
 			$taxonomy = wc_attribute_taxonomy_name_by_id( (int) $attribute_id );
@@ -166,7 +171,7 @@ class CreateProduct {
 		return $taxonomy;
 	}
 
-  private function createVariations( $product, array $variations ) {
+  private function createVariations( $product, array $variations, string $storeName ) {
     $existentVariations = $product->get_children( array(
 			'fields'      => 'ids',
 			'post_status' => array( 'publish', 'private' )
@@ -188,6 +193,7 @@ class CreateProduct {
           $productVariation->set_sku( $variationSku );
         }
 
+				$productVariation->update_meta_data( '_tradeinn_variation_id_' . $variation->getId(), $storeName );
         $productVariation->set_attributes( $attributes );
 
         $price = $variation->getPrice();
@@ -220,23 +226,32 @@ class CreateProduct {
 		}
 	}
 
-  private function getAttributeTaxonomyId( $taxonomyLabel, $taxonomySlug ) {
+  private function getAttributeTaxonomyId( $id, $taxonomyLabel, $taxonomySlug ) {
+		$storedValue = empty( $id ) ? '' : get_option( 'tradeinn_attribute_' . $id, '' );
+
+		if ( ! empty( $storedValue ) ) {
+			return $storedValue;
+		}
+
 		$optionName = 'tradeinn_' . $taxonomyLabel;
 		$attributeIdFromCache = get_option( $optionName, '' );
 
 		if ( ! empty( $attributeIdFromCache ) && ! is_null( wc_get_attribute( $attributeIdFromCache ) ) ) {
+			IdMapper::setAttributeId( $id, $attributeIdFromCache );
 			return $attributeIdFromCache;
 		}
 
 		$attributeIdFromCache = get_option( 'sp_tradeinn_' . $taxonomyLabel, '' );
 
 		if ( ! empty( $attributeIdFromCache ) && ! is_null( wc_get_attribute( $attributeIdFromCache ) ) ) {
+			IdMapper::setAttributeId( $id, $attributeIdFromCache );
 			return $attributeIdFromCache;
 		}
 
 		$attributeFromSlug = wc_attribute_taxonomy_id_by_name( $taxonomySlug );
 
 		if ( $attributeFromSlug ) {
+			IdMapper::setAttributeId( $id, $attributeFromSlug );
 			update_option( 'sp_tradeinn_' . $taxonomyLabel, $attributeFromSlug, false );
 			return $attributeFromSlug;
 		}
@@ -247,6 +262,7 @@ class CreateProduct {
 		$attributeFromLabel = wc_attribute_taxonomy_id_by_name( $attribute_name );
 
 		if ( $attributeFromLabel ) {
+			IdMapper::setAttributeId( $id, $attributeFromLabel );
 			update_option( 'sp_tradeinn_' . $taxonomyLabel, $attributeFromLabel, false );
 			return $attributeFromLabel;
 		}
@@ -282,6 +298,7 @@ class CreateProduct {
 			);
 		}
 
+		IdMapper::setAttributeId( $id, $attribute_id );
 		update_option( $optionName, $attribute_id, false );
 		
 		return $attribute_id;
@@ -360,8 +377,10 @@ class CreateProduct {
     $variations = $productData->getVariations();
 
     if ( count( $variations ) > 1 ) {
-      $this->createVariations( $product, $variations );
-    }
+      $this->createVariations( $product, $variations, $productData->getStoreName() );
+    } else if ( count( $variations ) === 1 ) {
+			update_post_meta( $product->get_id(), '_tradeinn_variation_id_' . $variations[0]->getId(), $productData->getStoreName() );
+		}
 
     return $product;
   }
@@ -380,7 +399,7 @@ class CreateProduct {
 				$name = wc_sanitize_taxonomy_name( stripslashes( $attributeName ) );
 				$taxonomy = wc_attribute_taxonomy_name($name); // woocommerce prepend pa_ to each attribute name
 
-				$taxonomy = $this->addTaxonomyIfNotExists( $attributeName, $taxonomy, $values );
+				$taxonomy = $this->addTaxonomyIfNotExists( $attribute->getId(), $attributeName, $taxonomy, $values );
 
         $values = array_map( function ( $value ) {
           if ( is_array( $value ) ) {
