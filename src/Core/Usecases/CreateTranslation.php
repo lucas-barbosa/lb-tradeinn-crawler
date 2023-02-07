@@ -15,8 +15,6 @@ class CreateTranslation {
 		$title = $productData->getBrand() . ' ' . $productData->getTitle();
     $description = $productData->getDescription();
 
-    // TODO: translate terms (categories and attributes)
-
     do_action( 'lb_multi_language_translate_product', $productId, $language, $title, $description, '' );
 
     $this->translateAttributes( $productData->getAttributes(), $language, $productData->getStoreName() );
