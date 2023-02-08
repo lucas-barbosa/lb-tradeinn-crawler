@@ -32,6 +32,7 @@ class ProductAttributeEntity {
   }
 
   public function isVariation() {
-    return count( $this->value ) > 1 ? '1' : '0';
+    $isVariableAttributeName = in_array( strtoupper( $this->getName() ), [ 'COR', 'TAMANHO' ] );
+    return $isVariableAttributeName && count( $this->value ) > 1 ? '1' : '0';
   }
 }
