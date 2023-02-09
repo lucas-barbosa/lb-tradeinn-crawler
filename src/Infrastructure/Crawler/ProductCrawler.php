@@ -5,6 +5,7 @@ namespace LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler;
 use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductEntity;
 use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\IProductCrawler;
 use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\IProductParser;
+use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\Products;
 
 class ProductCrawler extends Crawler implements IProductCrawler {
   protected static $HOOK_NAME = 'lb_tradeinn_product_crawler';
@@ -24,6 +25,10 @@ class ProductCrawler extends Crawler implements IProductCrawler {
       $hook = self::$HOOK_NAME;
     }
 
+    if ( Products::isAlreadyCrawled( $params['storeName'], $params['productId'] ) ) {
+      return;
+    }
+    
     $has_action = as_has_scheduled_action( $hook, array( $params ), $this->groupSlug );
 
     if ( $has_action ) return;
