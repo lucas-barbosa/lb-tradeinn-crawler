@@ -448,7 +448,11 @@ class CreateProduct {
     $title = $productData->getBrand() . ' ' . $productData->getTitle();
 
     $product->set_name( trim( $title ) );
-    $product->set_category_ids( $this->addCategories( $productData->getCategories() ) );
+
+		$categories = $this->addCategories( $productData->getCategories() );
+		$existentCategories = $product->get_category_ids();
+		$product->set_category_ids( array_merge( $categories, $existentCategories ) );
+		
     $product->set_description( $productData->getDescription() );
     $product->set_sku( $productData->getSku() );
     

@@ -120,8 +120,8 @@ class CategoryCrawler extends Crawler implements ICategoryCrawler  {
     }
 
     $nextPage = $currentPage + 1;
-    $props['page'] = $nextPage;
+    $params['page'] = $nextPage;
 
-    as_enqueue_async_action( self::$HOOK_NAME, array( $props ), $this->groupSlug );  
+    as_enqueue_async_action( self::$HOOK_NAME, array( $params ), $this->groupSlug );  
   }
 }
