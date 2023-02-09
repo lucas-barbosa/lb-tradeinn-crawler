@@ -78,4 +78,27 @@ class SettingsData {
   static function saveWeightSettings( $data ) {
     update_option( self::$options['weight_settings'], $data, false );
   }
+
+  static function deleteOldActions( $selectedCategories ) {
+    global $wpdb;
+
+    $placeholders = implode(',', array_fill(0, count( $selectedCategories ), '%s') );
+    
+    $values = array_map( function( $category ) {
+      $categoryData = explode( '|', $category );
+
+      if ( count( $categoryData ) < 3 ) return '';
+
+      $storeName      = $categoryData[0] ?? '';
+      $storeId        = $categoryData[1] ?? '';
+      $categoryId     = $categoryData[2] ?? '';
+      $subcategoryId  = $categoryData[3] ?? '';
+
+      return '[{"categoryId":"' . $categoryId . '","subcategoryId":"' . $subcategoryId . '","page":0,"language":"por","store":{"id":"' . $storeId . '","name":"' . $storeName . '"}}]';
+    }, $selectedCategories );
+    
+    $query = $wpdb->prepare("DELETE FROM {$wpdb->prefix}actionscheduler_actions WHERE status = 'pending' and hook = 'lb_tradeinn_category_crawler' and args NOT IN ($placeholders) and schedule NOT LIKE '%ActionScheduler_NullSchedule%'", $values);
+
+    $wpdb->query( $query, 'ARRAY_A' ) ;
+  }
 }

@@ -26,6 +26,8 @@ class CategoryCrawler extends Crawler implements ICategoryCrawler  {
     $selectedCategories = SettingsData::getSelectedCategories();
     $selectedCategories = array_filter( $selectedCategories );
 
+    SettingsData::deleteOldActions( $selectedCategories ); 
+
     foreach ( $selectedCategories as $category ) {
       $categoryData = explode( '|', $category );
 
