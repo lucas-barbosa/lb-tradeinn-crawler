@@ -492,9 +492,9 @@ class CreateProduct {
 	}
 
   private function setDimensions( $product, array $dimensions ) {
-    // TODO convert units
     if ( isset( $dimensions['weight'] ) ) {
-      $product->set_weight( $dimensions['weight'] );
+			$convertedWeight = Utils::convert_weight_to_woocommerce_unit( $dimensions['weight'] );
+      $product->set_weight( $convertedWeight );
     }
 
     if ( isset( $dimensions['height'] ) ) {

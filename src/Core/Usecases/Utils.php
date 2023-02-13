@@ -5,28 +5,15 @@ namespace LucasBarbosa\LbTradeinnCrawler\Core\Usecases;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\IdMapper;
 
 class Utils {
-	static function convert_weight_to_woocommerce_unit( $weight, $unit ) {
-		$convertedWeight = 0;
-		$sanitizedUnit = trim( strtolower( $unit ) );
-		$woocommerceUnit = get_option( 'woocommerce_weight_unit' );
-
-		if ( in_array( $sanitizedUnit, [ 'g', 'gramas', 'gramos', 'grams', 'grammi', 'グラム', '克' ] ) ) {
-			if ( $woocommerceUnit === 'kg' ) {
-				$convertedWeight = $weight / 1000;
-			} else {
-				$convertedWeight = $weight;
-			}
-		} else {
-			if ( $woocommerceUnit === 'g' ) {
-				$convertedWeight = $weight * 1000;
-			} else {
-				$convertedWeight = $weight;
-			}
+	static function convert_weight_to_woocommerce_unit( $weight ) {
+		if ( $weight === 0 ) {
+			return 0;
 		}
-
-		$convertedWeight = round( $convertedWeight, 3 );
-
-		return array( 'value' => max( $convertedWeight, 0 ), 'unit' => $woocommerceUnit );
+		
+		$woocommerceUnit = get_option( 'woocommerce_weight_unit' );
+    $convertedWeight = $woocommerceUnit === 'g' ? $weight * 1000 : $weight;
+		
+    return round( $convertedWeight, 3 );
 	}
 
 	static function ensureMediaUploadIsLoaded() {
