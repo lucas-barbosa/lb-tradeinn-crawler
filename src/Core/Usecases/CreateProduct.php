@@ -3,7 +3,6 @@
 namespace LucasBarbosa\LbTradeinnCrawler\Core\Usecases;
 
 use Exception;
-use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductAttributeEntity;
 use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductEntity;
 use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductVariationEntity;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\IdMapper;
@@ -23,6 +22,7 @@ class CreateProduct {
 
   public function execute( ProductEntity $productData ) {
 		if ( $productData->getInvalid() ) {
+			$this->deleteProductIfExists( $productData );
 			return;
 		}
 
@@ -231,6 +231,15 @@ class CreateProduct {
 					wp_delete_post( $variationId, true );
 				}
 			}
+		}
+	}
+
+	private function deleteProductIfExists( ProductEntity $product ) {
+		$productId = IdMapper::getProductId( $product->getId(), $product->getStoreName() );
+
+		if ( $productId ) {
+			wp_delete_post( $productId, true );
+			do_action( 'lb_barrabes_product_deleted', $productId );
 		}
 	}
 
