@@ -6,6 +6,7 @@ use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\CreateProduct;
 use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\CreateTranslation;
 use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\RefreshStock;
 use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\RenderAdminSettings;
+use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\ValidateProductWeight;
 
 class InitCore {
   private string $plugin_name;
@@ -25,6 +26,9 @@ class InitCore {
 
     $refreshStock = new RefreshStock();
     $refreshStock->setHooks();
+    
+    $validateProduct = new ValidateProductWeight();
+    $validateProduct->setHooks();
     
     if ( is_admin() ) {
       $adminSettings = new RenderAdminSettings( $this->plugin_name, $this->plugin_version );

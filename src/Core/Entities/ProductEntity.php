@@ -10,6 +10,7 @@ class ProductEntity {
   protected string $description = '';
   protected array $dimensions = [];
   protected string $id = '';
+  protected bool $invalid = false;
   protected array $images = [];
   protected array $parentStoreProps = [];
   protected float $price = 0;
@@ -66,6 +67,10 @@ class ProductEntity {
   public function getId() {
     return $this->id;
   }
+
+  public function getInvalid() {
+    return $this->invalid;
+  }
   
   public function getImages() {
     return $this->images;
@@ -102,7 +107,16 @@ class ProductEntity {
   public function getVariations() {
     return $this->variations;
   }
+
+  public function getWeight() {
+    $dimensions = $this->getDimensions();
+    return $dimensions['weight'] ?? 0;
+  }
   
+  public function isVariable() {
+    return count( $this->variations ) > 1;
+  }
+
   public function setAttributes( $attributes ) {
     $this->attributes = $attributes;
     return $this;
@@ -135,6 +149,11 @@ class ProductEntity {
 
   public function setId( $id ) {
     $this->id = $id;
+    return $this;
+  }
+
+  public function setInvalid() {
+    $this->invalid = true;
     return $this;
   }
 

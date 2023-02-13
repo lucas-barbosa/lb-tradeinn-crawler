@@ -8,6 +8,7 @@ class ProductVariationEntity {
   protected array $dimensions;
   protected string $ean;
   protected string $id;
+  protected bool $invalid = false;
   protected array $estimatedDate;
   protected float $price;
 
@@ -34,11 +35,19 @@ class ProductVariationEntity {
   public function getId() {
     return $this->id;
   }
+
+  public function getInvalid() {
+    return $this->invalid;
+  }
   
   public function getPrice() {
     return $this->price;
   }
 
+  public function getWeight() {
+    return $this->dimensions['weight'] ?? 0;
+  }
+  
   public function setAttributes( $attributes ) {
     $this->attributes = $attributes;
     return $this;
@@ -75,6 +84,11 @@ class ProductVariationEntity {
 
   public function setId( $id ) {
     $this->id = $id;
+    return $this;
+  }
+
+  public function setInvalid() {
+    $this->invalid = true;
     return $this;
   }
 

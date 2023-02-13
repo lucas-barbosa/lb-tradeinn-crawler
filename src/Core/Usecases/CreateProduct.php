@@ -22,6 +22,10 @@ class CreateProduct {
 	}
 
   public function execute( ProductEntity $productData ) {
+		if ( $productData->getInvalid() ) {
+			return;
+		}
+
 		$this->loadParams();
 			
     $product = $this->getWoocommerceProduct( $productData->getId(), $productData->getStoreName(), $productData->getVariations() );
@@ -181,6 +185,10 @@ class CreateProduct {
 
 		try {
 			foreach ( $variations as $i => $variation ) {
+				if ( $variation->getInvalid() ) {
+					continue;
+				}
+
 				$sku = $product->get_sku();
 
         $attributes = $this->getWoocommerceVariationAttributes( $variation );
