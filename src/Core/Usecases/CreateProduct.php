@@ -377,6 +377,11 @@ class CreateProduct {
     return $formattedAttributes;
   }
 
+	protected function sanitizeDescription( $description ) {
+		$descriptionWithReplacedImage = Utils::replaceDescriptionImage( $description );
+    return Utils::purifyHTML( $descriptionWithReplacedImage );
+	}
+
   protected function saveProduct( $product, bool $changed, $price, $availability ) {
     do_action( 'lb_multi_inventory_remove_stock_hooks' );
 
@@ -470,7 +475,8 @@ class CreateProduct {
 		$existentCategories = $product->get_category_ids();
 		$product->set_category_ids( array_merge( $categories, $existentCategories ) );
 		
-    $product->set_description( $productData->getDescription() );
+		$description = $this->sanitizeDescription( $productData->getDescription() );
+    $product->set_description( $description );
     $product->set_sku( $productData->getSku() );
     
     $product = $this->setDimensions( $product, $productData->getDimensions() );

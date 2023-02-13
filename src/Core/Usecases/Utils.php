@@ -12,7 +12,7 @@ class Utils {
 		
 		$woocommerceUnit = get_option( 'woocommerce_weight_unit' );
     $convertedWeight = $woocommerceUnit === 'g' ? $weight * 1000 : $weight;
-		
+
     return round( $convertedWeight, 3 );
 	}
 
@@ -23,33 +23,105 @@ class Utils {
 		}
 	}
 
+	private static function getDomObject( $content ) {
+		$dom = new \DOMDocument('1.0', 'UTF-8');
+		
+    libxml_use_internal_errors( true );
+		$dom->loadHTML( mb_convert_encoding( $content, 'HTML-ENTITIES', 'UTF-8' ) );
+		libxml_use_internal_errors( false );
+
+		return $dom;
+	}
+
+	static function purifyHTML( $html ) {    		
+		$html = self::removeElements(
+			$html,
+			array(
+				'//div[contains(attribute::class, "a-expander-header")]',
+				'//div[contains(attribute::class, "apm-tablemodule")]',
+				'//div[contains(attribute::class, "-comparison-table")]',
+				'//div[contains(attribute::class, "-carousel")]',
+				'//*[@data-action="a-expander-toggle"]',
+				'//a[@href="javascript:void(0)"]',
+				'//div[@id="boxCaracteristicas"]',
+				'//./table[@align="right"]',
+				'//ul[contains(@class, "listaArticulos")]/parent::div/preceding-sibling::div[1]',
+				'//ul[contains(@class, "listaArticulos")]/parent::div',
+				'//iframe',
+				'//script',
+				'//style',
+				'//form',
+				'//object',
+				'//embed',
+				'//select',
+				'//input',
+				'//textarea',
+				'//button',
+				'//noscript',
+				'//li[contains(text(), "Garantía") or contains(text(), "Garantia") or contains(text(), "Warranty")]'
+			)
+		);
+		
+		return trim($html);
+	}
+
+	private static function removeElements( $html, $selectors) {
+		if (!$html) {
+			return $html;
+		}
+		
+		$dom = self::getDomObject( $html );
+		$xpath = new \DOMXPath($dom);
+	
+		foreach ($selectors as $selector) {
+			
+			$nodes = $xpath->query($selector);
+			
+			foreach ($nodes as $node) {
+				$node->parentNode->removeChild($node);
+			}
+		}
+		
+		return $dom->saveHTML();
+	}
+	
+	static function removeUnnecessaryChars( $html ) {
+		$html = preg_replace('/<!--(.|\s)*?-->/i', '', $html);
+		$html = preg_replace('/\s(id|class|itemprop|align|width|style|margin|margin-left|margin-top|margin-bottom|margin-right)="[^"]{0,}"/', '', $html);
+		$html = preg_replace('/\>\s+\</', '><', $html);
+		$html = preg_replace('/\s+/', ' ', $html);
+		$html = preg_replace('/javascript:/', '#', $html); // Remove javascript.
+		$html = preg_replace('/max-height:/', 'a:', $html); // Remove max height attribute.
+		$html = preg_replace('#<a.*?>(.*?)</a>#i', '\1', $html); // Remove Link
+		return $html;
+	}
+
 	static function replaceDescriptionImage( $html ) {
-    // TODO
-    return $html;
-		// if ( !$html ) {
-		// }
+		if ( !$html ) {
+    	return $html;
+		}
 		
-		// $dom = self::getDomObject($html);
-		// $images = $dom->getElementsByTagName('img');
+		$dom = self::getDomObject( $html );
+		$images = $dom->getElementsByTagName('img');
 		
-		// foreach ( $images as $image ) {
-		// 	$img = $image->getAttribute('src');
+		foreach ( $images as $image ) {
+			$img = $image->getAttribute('src');
 			
-		// 	if ($img) {
-		// 		$key = base64_encode( $img );
-		// 		$id = self::uploadAttachment( $img, $key );
+			if ($img) {
+				$key = base64_encode( $img );
+				$id = self::uploadAttachment( $img, $key );
 
-		// 		if ($id) {
-		// 			$img = wp_get_attachment_url($id);
-		// 		}
-		// 	}
+				if ($id) {
+					$img = wp_get_attachment_url($id);
+				}
+			}
 			
-		// 	if ($img) {
-		// 		$image->setAttribute('src', $img);
-		// 	}
-		// }
+			if ($img) {
+				$image->setAttribute('src', $img);
+			}
+		}
 
-		// return $dom->saveHTML();
+		return $dom->saveHTML();
 	}
 
   static function set_uploaded_image_as_attachment( $upload, $id = 0 ) {
