@@ -2,6 +2,8 @@
 
 namespace LucasBarbosa\LbTradeinnCrawler\Core\Entities;
 
+use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\SettingsData;
+
 class ProductVariationEntity {
   protected array $attributes;
   protected string $availability;
@@ -41,7 +43,8 @@ class ProductVariationEntity {
   }
   
   public function getPrice() {
-    return $this->price;
+    $multiplicator = SettingsData::getMultiplicator();
+    return round( $this->price * $multiplicator, 2 );
   }
 
   public function getWeight() {

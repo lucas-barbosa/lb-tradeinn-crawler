@@ -2,6 +2,8 @@
 
 namespace LucasBarbosa\LbTradeinnCrawler\Core\Entities;
 
+use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\SettingsData;
+
 class ProductEntity {
   protected array $attributes = [];
   protected string $availability = 'outofstock';
@@ -93,7 +95,8 @@ class ProductEntity {
       return $this->variations[0]->getPrice();
     }
 
-    return $this->price;
+    $multiplicator = SettingsData::getMultiplicator();
+    return round( $this->price * $multiplicator, 2 );
   }
     
   public function getSku() {
