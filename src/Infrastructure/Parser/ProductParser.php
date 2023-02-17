@@ -130,7 +130,6 @@ class ProductParser implements IProductParser {
   }
 
   private function getSku() {
-    return '';
     $value = Utils::getPropertyValue( $this->xpath, '//meta[@itemprop = "sku"]' );
 
     if ( is_array( $value ) ) {
@@ -176,7 +175,7 @@ class ProductParser implements IProductParser {
           new ProductAttributeEntity( '695', 'Cor', $product['color'], $product['id_producte'] ),
           new ProductAttributeEntity( '', 'Tamanho', $product['talla'], $product['id_producte'] ),
         ])
-        ->setAvailability( $offer['dispo'], $offer['plazo_entrega'], $product['exist'], $product['stock_reservat'] )
+        ->setAvailability( $offer['plazo_entrega'], $product['exist'], $product['stock_reservat'] )
         ->setDimensions( [
           'width'  => $product['width'],
           'height' => $product['height'],

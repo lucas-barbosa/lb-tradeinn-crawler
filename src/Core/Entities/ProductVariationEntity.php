@@ -56,7 +56,7 @@ class ProductVariationEntity {
     return $this;
   }
 
-  public function setAvailability( $quantity, $deliveryDate, $tradeInnStock, $reservedQuantity ) {
+  public function setAvailability( $deliveryDate, $tradeInnStock, $reservedQuantity ) {
     $tradeInnQuantity = (int)$tradeInnStock - (int)$reservedQuantity;
 
     if ( $tradeInnQuantity > 0  || $deliveryDate == 0 ) {

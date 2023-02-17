@@ -100,7 +100,7 @@ class ProductEntity {
   }
     
   public function getSku() {
-    return empty( $this->sku ) ? '' : 'TI-' . $this->sku;
+    return empty( $this->sku ) ? '' : 'TT-' . $this->sku;
   }
   
   public function getTitle() {
