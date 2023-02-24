@@ -3,6 +3,7 @@
 namespace LucasBarbosa\LbTradeinnCrawler\Core\Entities;
 
 class ProductAttributeEntity {
+  private ?bool $variable = null;
   private string $id = '';
   private string $name = '';
   private string $variationId = '';
@@ -32,7 +33,15 @@ class ProductAttributeEntity {
   }
 
   public function isVariation() {
+    if ( ! is_null( $this->variable ) ) {
+      return $this->variable;
+    }
+
     $isVariableAttributeName = in_array( strtoupper( $this->getName() ), [ 'COR', 'TAMANHO' ] );
-    return $isVariableAttributeName && count( array_unique( $this->value ) ) > 1 ? '1' : '0';
+    return $isVariableAttributeName && count( $this->value ) > 1 ? '1' : '0';
+  }
+
+  public function setVariable( $variable ) {
+    $this->variable = $variable;
   }
 }

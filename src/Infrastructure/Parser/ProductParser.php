@@ -54,6 +54,9 @@ class ProductParser implements IProductParser {
       $rawAttributes[$name] = [ 'id' => $id, 'values' => $values ];
     }
 
+    $colorIsVariable = false;
+    $lastColor = '';
+    
     foreach ( $data['json']['id_productes'] as $product ) {
       $offers = array_filter( $product['sellers'], function ( $offer ) {
         return $offer['id_seller'] == 1;
@@ -71,7 +74,9 @@ class ProductParser implements IProductParser {
         $rawAttributes['Tamanho'] = [ 'id' => '' ];
       }
 
-      $translatedColor = Utils::translate( $product['color'], 'en', 'pt-br', false, 'attribute', 'title' );
+      $translatedColor = isset( $this->translatedColors[$product['color']] ) 
+        ? $this->translatedColors[$product['color']]
+        : Utils::translate( $product['color'], 'en', 'pt-br', false, 'attribute', 'title' );
 
       if ( ! empty( $translatedColor ) ) {
         $this->translatedColors[$product['color']] = $translatedColor;
@@ -79,12 +84,24 @@ class ProductParser implements IProductParser {
 
       $rawAttributes['Cor']['values'][] = [ 'id' => '', 'value' => $product['color'], 'variationId' => $product['id_producte'], 'translated_value' => $translatedColor ];
       $rawAttributes['Tamanho']['values'][] = [ 'id' => '', 'value' => $product['talla'] === 'One Size' ? 'Tamanho Único' : $product['talla'], 'variationId' => $product['id_producte'] ];
+
+      if ( ! empty( $lastColor ) && $lastColor !== $product['color'] ) {
+        $colorIsVariable = true;
+      }
+
+      $lastColor = $product['color'];
     }
     
     $result = [];
 
     foreach ( $rawAttributes as $name => $attribute ) {
-      $result[] = new ProductAttributeEntity( $attribute['id'], $name, $attribute['values'] );
+      $item = new ProductAttributeEntity( $attribute['id'], $name, $attribute['values'] );
+
+      if ( strtoupper( $name ) === 'COR' ) {
+        $item->setVariable( $colorIsVariable );
+      }
+      
+      $result[] = $item;
     }
 
     return $result;
