@@ -34,7 +34,7 @@ class TranslatorCrawler extends ProductCrawler {
 
     foreach ( $languages as $language ) {
       if ( apply_filters( 'lb_multi_language_product_has_translation', false, $productId, $language['name'] ) ) {
-        // continue;
+        continue;
       }
 
       $productParams = $params[1];

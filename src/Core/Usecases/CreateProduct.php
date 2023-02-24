@@ -153,6 +153,12 @@ class CreateProduct {
 
 			foreach ( $values as $item ) {
         $value = is_array( $item ) ? $item['value'] : $item;
+				$originalValue = '';
+
+				if ( is_array( $item ) && isset( $item['translated_value'] ) && ! empty( $item['translated_value'] ) ) {
+					$originalValue = $value;
+					$value = $item['translated_value'];
+				}
 
         if ( ! empty( $item['id'] ) && IdMapper::getTermId( $item['id'] ) ) {
           continue;
@@ -166,6 +172,7 @@ class CreateProduct {
 
         if ( ! is_wp_error( $term ) &&  isset( $term['term_id'] ) && ! empty( $item['id'] ) ) {
           update_term_meta( $term['term_id'], '_tradeinn_term_name_' . $item['id'], $item['id'] );
+					do_action( 'lb_multi_language_translate_term', $term['term_id'], 'ingles', trim( $originalValue ), '', sanitize_title( $originalValue ) );
         }        
 			}
 
@@ -425,6 +432,10 @@ class CreateProduct {
 
         $values = array_map( function ( $value ) {
           if ( is_array( $value ) ) {
+						if ( isset( $value['translated_value'] ) && ! empty( $value['translated_value'] ) ) {
+							return $value['translated_value'];
+						}
+
             return $value['value'];
           }
 

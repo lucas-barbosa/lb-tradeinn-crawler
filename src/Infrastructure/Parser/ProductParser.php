@@ -10,6 +10,7 @@ use LucasBarbosa\LbTradeinnCrawler\Core\Interfaces\IProductParser;
 
 class ProductParser implements IProductParser {
   private ?DOMXPath $xpath;
+  private $translatedColors = [];
 
   public function getProduct( $itemProps, array $data ) : ProductEntity {
     $this->xpath = Utils::getXPath( $data['site'] );
@@ -70,8 +71,14 @@ class ProductParser implements IProductParser {
         $rawAttributes['Tamanho'] = [ 'id' => '' ];
       }
 
-      $rawAttributes['Cor']['values'][] = [ 'id' => '', 'value' => $product['color'], 'variationId' => $product['id_producte'] ];
-      $rawAttributes['Tamanho']['values'][] = [ 'id' => '', 'value' => $product['talla'], 'variationId' => $product['id_producte'] ];
+      $translatedColor = Utils::translate( $product['color'], 'en', 'pt-br', false, 'attribute', 'title' );
+
+      if ( ! empty( $translatedColor ) ) {
+        $this->translatedColors[$product['color']] = $translatedColor;
+      }
+
+      $rawAttributes['Cor']['values'][] = [ 'id' => '', 'value' => $product['color'], 'variationId' => $product['id_producte'], 'translated_value' => $translatedColor ];
+      $rawAttributes['Tamanho']['values'][] = [ 'id' => '', 'value' => $product['talla'] === 'One Size' ? 'Tamanho Único' : $product['talla'], 'variationId' => $product['id_producte'] ];
     }
     
     $result = [];
@@ -169,10 +176,12 @@ class ProductParser implements IProductParser {
 
       $offer = array_shift( $offers );
 
+      $color = isset( $this->translatedColors[$product['color']] ) ? $this->translatedColors[$product['color']] : $product['color'];
+
       $variation = (new ProductVariationEntity())
         ->setId( $product['id_producte'] )
         ->setAttributes( [
-          new ProductAttributeEntity( '695', 'Cor', $product['color'], $product['id_producte'] ),
+          new ProductAttributeEntity( '695', 'Cor', $color, $product['id_producte'] ),
           new ProductAttributeEntity( '', 'Tamanho', $product['talla'], $product['id_producte'] ),
         ])
         ->setAvailability( $offer['plazo_entrega'], $product['exist'], $product['stock_reservat'] )
