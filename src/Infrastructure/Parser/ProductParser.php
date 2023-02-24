@@ -21,7 +21,7 @@ class ProductParser implements IProductParser {
       ->setCategories( $this->getCategories( $itemProps['storeId'], $itemProps['storeName'], $data ) )
       ->setDescription( $this->getDescription() )
       ->setImages( $this->getImages() )
-      ->setSku( $this->getSku() )
+      ->setSku( $this->getSku( $data ) )
       ->setVariations( $this->getVariations( $data ) )
       ->setParentStoreProps( $itemProps );
     
@@ -136,11 +136,16 @@ class ProductParser implements IProductParser {
     }, $images );
   }
 
-  private function getSku() {
+  private function getSku( $data ) {
     $value = Utils::getPropertyValue( $this->xpath, '//meta[@itemprop = "sku"]' );
 
     if ( is_array( $value ) ) {
       return $value[0];
+    }
+
+    if ( empty( $value ) ) {
+      $id = $data['json']['id_modelo'];
+      return empty( $id ) ? '' : $id;
     }
 
     return $value;
