@@ -156,7 +156,7 @@ class ProductParser implements IProductParser {
   private function getSku( $data ) {
     $value = Utils::getPropertyValue( $this->xpath, '//meta[@itemprop = "sku"]' );
 
-    if ( is_array( $value ) ) {
+    if ( is_array( $value ) && count( $value ) > 0) {
       return $value[0];
     }
 

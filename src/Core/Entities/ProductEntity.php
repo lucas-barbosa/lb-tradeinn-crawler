@@ -18,6 +18,7 @@ class ProductEntity {
   protected float $price = 0;
   protected string $sku = '';
   protected string $title = '';
+  protected ?bool $variable = null;
   protected array $variations = [];
 
   public function __construct( string $title, string $id ) {
@@ -117,7 +118,40 @@ class ProductEntity {
   }
   
   public function isVariable() {
-    return count( $this->variations ) > 1;
+    if ( ! is_null( $this->variable ) ) {
+      return $this->variable;
+    }
+
+    if ( count( $this->variations ) > 1 ) {
+      $this->variable = true;
+      return true;
+    }
+
+    $attributes = $this->attributes;
+
+    if ( empty( $attributes ) ) {
+      $this->variable = false;
+      return false;
+    }
+
+    foreach ( $attributes as $attribute ) {
+      $attributeName = $attribute->getName();
+
+      if ( strtoupper( $attributeName ) === 'TAMANHO' ) {
+        $values = array_column( $attribute->getValue(), 'value' );
+
+        if ( in_array( 'Tamanho Único', $values ) || in_array( 'One Size', $values ) ) {
+          $this->variable = false;
+          return false;
+        }
+
+        $this->variable = true;
+        return true;
+      }
+    }
+
+    $this->variable = false;
+    return false;
   }
 
   public function setAttributes( $attributes ) {
@@ -190,6 +224,10 @@ class ProductEntity {
   }
 
   public function setSku( $sku ) {
+    if ( is_null( $sku ) ) {
+      $sku = '';
+    }
+
     $this->sku = $sku;
     return $this;
   }

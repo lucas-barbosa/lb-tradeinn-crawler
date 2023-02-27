@@ -34,11 +34,30 @@ class ProductAttributeEntity {
 
   public function isVariation() {
     if ( ! is_null( $this->variable ) ) {
-      return $this->variable;
+      return $this->variable ? '1' : '0';
     }
 
-    $isVariableAttributeName = in_array( strtoupper( $this->getName() ), [ 'COR', 'TAMANHO' ] );
-    return $isVariableAttributeName && count( $this->value ) > 1 ? '1' : '0';
+    $isVariableAttributeName = in_array( strtoupper( $this->getName() ), ['COR', 'TAMANHO'], true );
+    
+    if ( $isVariableAttributeName && count( $this->value ) > 1 ) {
+      return '1';
+    }
+
+    if ( $isVariableAttributeName && count( $this->value ) === 1 ) {
+      $value = $this->value[0];
+
+      if ( is_array( $value ) ) {
+        $value = $value['value'];
+      }
+
+      $oneSizeValues = ['ONE SIZE', 'TAMANHO ÚNICO'];
+
+      if ( ! in_array( strtoupper( $value ), $oneSizeValues, true ) ) {
+        return '1';
+      }
+    }
+
+    return '0';
   }
 
   public function setVariable( $variable ) {

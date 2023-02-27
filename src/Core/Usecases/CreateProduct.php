@@ -28,7 +28,7 @@ class CreateProduct {
 
 		$this->loadParams();
 			
-    $product = $this->getWoocommerceProduct( $productData->getId(), $productData->getStoreName(), $productData->getVariations() );
+    $product = $this->getWoocommerceProduct( $productData->getId(), $productData->getStoreName(), $productData->isVariable() );
     $product = $this->setRequiredData( $product, $productData );
 
     $this->saveProduct( $product, true, $productData->getPrice(), $productData->getAvailability() );
@@ -340,7 +340,7 @@ class CreateProduct {
 		return $data_store->find_matching_product_variation( $product, $attributes );
 	}
 
-  private function getWoocommerceProduct( string $id, string $store, array $variations ) {
+  private function getWoocommerceProduct( string $id, string $store, bool $isVariable ) {
     $productId = IdMapper::getProductId( $id, $store );
 		
 		if ( $productId ) {
@@ -351,7 +351,7 @@ class CreateProduct {
 			}
 		}
 
-    if ( count( $variations ) > 1 ) {
+    if ( $isVariable ) {
 			return new \WC_Product_Variable((int) $productId );
 		}
 
@@ -405,7 +405,7 @@ class CreateProduct {
     
     $variations = $productData->getVariations();
 
-    if ( count( $variations ) > 1 ) {
+    if ( $productData->isVariable() ) {
       $this->createVariations( $product, $variations, $productData->getStoreName() );
     } else if ( count( $variations ) === 1 ) {
 			update_post_meta( $product->get_id(), '_tradeinn_variation_id_' . $variations[0]->getId(), $productData->getStoreName() );
