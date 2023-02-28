@@ -3,6 +3,7 @@
 namespace LucasBarbosa\LbTradeinnCrawler\Core\Usecases;
 
 use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductEntity;
+use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductVariationEntity;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\IdMapper;
 
 class RefreshStock extends CreateProduct {
@@ -36,28 +37,53 @@ class RefreshStock extends CreateProduct {
 
 		$syncedVariations = [];
 
-    foreach ( $productData->getVariations() as $variation ) {
+    foreach ( $productData->getVariations() as $i => $variation ) {
       $variationId = IdMapper::getVariationId( $variation->getId(), $productData->getStoreName() );
 
       if ( empty( $variationId ) ) {
+        $this->appendVariation( $i, $product, $variation, $productData->getStoreName() );
         continue;
       }
 
       $syncedVariations[] = $variationId;
-      $product = wc_get_product( $variationId );
+      $variationProduct = wc_get_product( $variationId );
 
-      if ( ! $product ) {
+      if ( ! $variationProduct ) {
         continue;
       }
 
       $price = $variation->getPrice();
       $availability = $variation->getAvailability();
 
-			$changed = parent::setPriceAndStock( $product, $price, $availability );
-			parent::saveProduct( $product, $changed, $price, $availability );
+			$changed = parent::setPriceAndStock( $variationProduct, $price, $availability );
+			parent::saveProduct( $variationProduct, $changed, $price, $availability );
     }
 
     $this->setNotFoundVariationsOutStock( $existentVariations, $syncedVariations );
+  }
+
+  private function appendAttribute( $product, $attribute_id, $attribute_name, $attribute_value ) {
+    $attribute = $product->get_attribute( $attribute_name );
+
+    if ( ! $attribute ) {
+      return;
+    }
+
+    $name = wc_sanitize_taxonomy_name( stripslashes( $attribute_name ) );
+    $taxonomy = wc_attribute_taxonomy_name($name);
+    $taxonomy = $this->addTaxonomyIfNotExists( $attribute_id, $attribute_name, $taxonomy, [ $attribute_value ] );
+
+    wp_set_post_terms( $product->get_id(), $attribute_value, $taxonomy, true );
+  }
+  
+  private function appendVariation( $i, $product, $variation, $storeName ) {
+    $attributes = $variation->getAttributes();
+
+    foreach( $attributes as $attribute ) {
+      $this->appendAttribute( $product, $attribute->getId(), $attribute->getName(), $attribute->getValue()[0] );
+    }
+
+    $this->createVariation( $i, $product, $variation, $storeName );
   }
 
   private function setNotFoundVariationsOutStock( $existentVariations, $foundVariations ) {

@@ -145,7 +145,7 @@ class CreateProduct {
 		return $imageIds;
 	}
 
-  private function addTaxonomyIfNotExists( $id, $taxonomyLabel, $taxonomySlug, $values = array() ) {
+  protected function addTaxonomyIfNotExists( $id, $taxonomyLabel, $taxonomySlug, $values = array() ) {
 		$attribute_id = $this->getAttributeTaxonomyId( $id, $taxonomyLabel, $taxonomySlug );
 
 		if ( ! is_wp_error( $attribute_id ) && $values ) {
@@ -196,31 +196,7 @@ class CreateProduct {
 					continue;
 				}
 
-				$sku = $product->get_sku();
-
-        $attributes = $this->getWoocommerceVariationAttributes( $variation );
-				$productVariation = $this->getWoocommerceVariation( $product, $attributes );
-
-        $productVariation->set_parent_id( $product->get_id() );
-        
-        if ( $sku ) {
-          $variationSku = $sku . '-' . (string)$i . time();
-          $productVariation->set_sku( $variationSku );
-        }
-
-				$productVariation->update_meta_data( '_tradeinn_variation_id_' . $variation->getId(), $storeName );
-        $productVariation->set_attributes( $attributes );
-
-        $price = $variation->getPrice();
-        $stock = $variation->getAvailability();
-
-        $this->setPriceAndStock( $productVariation, $price, $stock );
-
-        $productVariation = $this->setDimensions( $productVariation, $variation->getDimensions() );
-
-        $this->saveProduct( $productVariation, true, $price, $stock );
-
-        $syncedVariations[] = $productVariation->get_id();
+				$syncedVariations[] = $this->createVariation( $i, $product, $variation, $storeName );
 			}
 		} catch ( Exception $e ) {
 			/**
@@ -229,6 +205,33 @@ class CreateProduct {
 		}
 
 		$this->deleteNonUsedVariations( $existentVariations, $syncedVariations );
+	}
+
+	public function createVariation( $i, $product, $variation, $storeName ) {
+		$sku = $product->get_sku();
+		
+		$attributes = $this->getWoocommerceVariationAttributes( $variation );
+		$productVariation = $this->getWoocommerceVariation( $product, $attributes );
+		$productVariation->set_parent_id( $product->get_id() );
+		
+		if ( $sku ) {
+			$variationSku = $sku . '-' . (string)$i . time();
+			$productVariation->set_sku( $variationSku );
+		}
+
+		$productVariation->update_meta_data( '_tradeinn_variation_id_' . $variation->getId(), $storeName );
+		$productVariation->set_attributes( $attributes );
+
+		$price = $variation->getPrice();
+		$stock = $variation->getAvailability();
+
+		$this->setPriceAndStock( $productVariation, $price, $stock );
+
+		$productVariation = $this->setDimensions( $productVariation, $variation->getDimensions() );
+
+		$this->saveProduct( $productVariation, true, $price, $stock );
+
+		return $productVariation->get_id();
 	}
 
 	private function deleteNonUsedVariations( $existentVariations, $newVariations ) {
