@@ -4,7 +4,7 @@
  * @wordpress-plugin
  * Plugin Name:       LB TradeInn Crawler
  * Description:       LB TradeInn Crawler copy TradeInn products to your ecommerce.
- * Version:           1.1.1
+ * Version:           1.2.0
  * Author:            Lucas Barbosa
  * Author URI:        https://github.com/lucas-barbosa
  * License:           GPL-2.0+
@@ -12,13 +12,7 @@
  */
 
 use LucasBarbosa\LbTradeinnCrawler\Core\InitCore;
-use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler\CategoriesCrawler;
-use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler\CategoryCrawler;
-use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Crawler\ProductCrawler;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\InitInfra;
-use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Parser\CategoriesParser;
-use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Parser\CategoryParser;
-use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Parser\ProductParser;
 
 // If this file is called directly, abort.
 

@@ -11,12 +11,14 @@ class TranslatorCrawler extends ProductCrawler {
   private string $currentLanguage;
 
   public function setHooks() {
-    if ( ! defined( 'LB_MULTI_LANGUAGES' ) ) {
-      return;
-    }
-    
-    add_action( self::$HOOK_NAME, array( $this, 'execute' ) );
-    add_action( 'lb_tradeinn_product_created', array( $this, 'enqueueProduct' ) );
+    add_action( 'plugins_loaded', function() {
+      if ( ! defined( 'LB_MULTI_LANGUAGES' ) ) {
+        return;
+      }
+      
+      add_action( self::$HOOK_NAME, array( $this, 'execute' ) );
+      add_action( 'lb_tradeinn_product_created', array( $this, 'enqueueProduct' ) );
+    });
   }  
 
   public function enqueueProduct( $params, $hook = ''  ) {
