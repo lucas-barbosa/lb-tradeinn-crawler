@@ -76,7 +76,7 @@ class ProductParser implements IProductParser {
 
       $translatedColor = isset( $this->translatedColors[$product['color']] ) 
         ? $this->translatedColors[$product['color']]
-        : Utils::translate( $product['color'], 'en', 'pt-br', false, 'attribute', 'title' );
+        : Utils::translate( $product['color'], 'en', 'pt-br', false, 'term', 'title' );
 
       if ( ! empty( $translatedColor ) ) {
         $this->translatedColors[$product['color']] = $translatedColor;
