@@ -147,6 +147,7 @@ class ProductParser implements IProductParser {
 
   private function getImages() {
     $images = Utils::getPropertyValue( $this->xpath, '//div[@id = "bigImg"]//p[contains(@class, "swiper-slide")]//img', 'src' );
+    $images = array_slice( $images, 0, apply_filters( 'lb_crawler_image_quantity', 7 ) );
     
     return array_map( function( $image ) {
       return 'https://www.tradeinn.com/' . $image;
