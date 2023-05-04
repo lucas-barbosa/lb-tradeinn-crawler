@@ -51,7 +51,14 @@
     const selectedCategories = lb_tradeinn_crawler.selected_categories || [];
 
     function renderCategory(id, name, parent = '', value = '', title = true, hasChilds = true) {
+      let storeName, storeId;
+
       if (!value) value = id;
+      else {
+        const splittedValue = value.split('|');
+        storeName = splittedValue.shift();
+        storeId = splittedValue.pop();
+      }
 
       const element = `
         <li>
@@ -62,8 +69,8 @@
               value="${value}"
               ${value && selectedCategories.includes(value) ? 'checked' : ''}
               ${title ? `class="lb-tradeinn-title"` : ''}
-            >${name}
-
+            >
+            ${hasChilds ? name : `<a href="https://tradeinn.com/${storeName}/pt/-/${storeId}/s" target="_blank">${name}</a>`}
             ${title && hasChilds ? `<button class="lb-tradeinn-toggle" type="button">Exibir/Ocultar</button>` : ''}
           </label>
 
