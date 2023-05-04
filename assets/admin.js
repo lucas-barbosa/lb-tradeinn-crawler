@@ -49,6 +49,20 @@
     $(document).on('click', '.lb-weight-delete', deleteRow);
 
     const selectedCategories = lb_tradeinn_crawler.selected_categories || [];
+    const viewedCategories = lb_tradeinn_crawler.viewed_categories || [];
+    const overrideWeight = lb_tradeinn_crawler.override_weight || [];
+    const categoriesWeight = lb_tradeinn_crawler.categories_weight || {};
+    const categoriesDimension = lb_tradeinn_crawler.categories_dimension || {};
+
+    const getCategoryWeight = (category) => {
+      if (category && categoriesWeight[category]) return categoriesWeight[category];
+      return '';
+    }
+
+    const getCategoryDimension = (category) => {
+      if (category && categoriesDimension[category]) return categoriesDimension[category];
+      return '';
+    }
 
     function renderCategory(id, name, parent = '', value = '', title = true, hasChilds = true) {
       let storeName, storeId;
@@ -75,6 +89,14 @@
           </label>
 
           ${title && hasChilds ? `<ul class="lb-tradeinn-subitems"></ul>` : ''}
+
+          ${!hasChilds ? `
+          <div style="display:inline-flex;gap:5px;align-items:center;">
+            <div><input type="checkbox" name="viewed_categories[]" value="${value}" ${value && viewedCategories.includes(value) ? 'checked' : ''}></div>
+            <label><strong>Peso (g): </strong><input type="number" name="lb-tradeinn-weight[${value}]" style="width: 70px" min="0" step="any" value="${getCategoryWeight(value)}"></label>
+            <label><strong>Dimensão (cm): </strong><input type="number" name="lb-tradeinn-dimension[${value}]" style="width: 70px" min="0" step="any" value="${getCategoryDimension(value)}"></label>
+            <label><input type="checkbox" name="override_weight_categories[]" value="${value}" ${value && overrideWeight.includes(value) ? 'checked' : ''}> Usar Peso?</label>
+          </div>` : ''}
         </li>
       `;
 

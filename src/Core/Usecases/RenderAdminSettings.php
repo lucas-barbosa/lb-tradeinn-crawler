@@ -54,7 +54,11 @@ class RenderAdminSettings {
     wp_localize_script( $this->plugin_name, $this->plugin_name, array(
       'weight_settings' => SettingsData::getWeightSettings(),
       'available_categories'  => SettingsData::getCategories(),
-      'selected_categories'   => SettingsData::getSelectedCategories()
+      'selected_categories'   => SettingsData::getSelectedCategories(),
+      'viewed_categories'     => SettingsData::getViewedCategories(),
+      'categories_dimension'  => SettingsData::getCategoriesDimension(),
+      'categories_weight'     => SettingsData::getCategoriesWeight(),
+      'override_weight'       => SettingsData::getCategoriesOverrideWeight()
     ) );
       
     wp_enqueue_script( $this->plugin_name );
@@ -143,14 +147,42 @@ class RenderAdminSettings {
     }
 
     $data = array();
+    $categoriesWeight = array();
+    $categoriesDimension = array();
+    $viewedCategories = array();
+    $overrideWeightCategories = array();
 
     if ( isset( $_POST['selected_tradeinn_categories'] ) && is_array( $_POST['selected_tradeinn_categories'] ) ) {
       $data = $_POST['selected_tradeinn_categories'];
       $data = array_filter( $data );
       $data = array_values( array_unique( $data ) );
     }
+
+    if ( isset( $_POST['viewed_categories'] ) && is_array( $_POST['viewed_categories'] ) ) {
+      $viewedCategories = $_POST['viewed_categories'];
+      $viewedCategories = array_filter( $viewedCategories );
+      $viewedCategories = array_values( array_unique( $viewedCategories ) );
+    }
+
+    if ( isset(  $_POST['override_weight_categories'] ) && is_array( $_POST['override_weight_categories'] ) ) {
+      $overrideWeightCategories = $_POST['override_weight_categories'];
+      $overrideWeightCategories = array_filter( $overrideWeightCategories );
+      $overrideWeightCategories = array_values( array_unique( $overrideWeightCategories ) );
+    }
+
+    foreach ( $_POST['lb-tradeinn-weight'] as $key => $value ) {
+      if ( $value > 0 ) $categoriesWeight[$key] = sanitize_text_field( $value );
+    }
+
+    foreach ( $_POST['lb-tradeinn-dimension'] as $key => $value ) {
+      if ( $value > 0 ) $categoriesDimension[$key] = sanitize_text_field( $value );
+    }
     
     SettingsData::saveSelectedCategories( $data );
+    SettingsData::saveCategoriesDimension( $categoriesDimension );
+    SettingsData::saveCategoriesWeight( $categoriesWeight );
+    SettingsData::saveViewedCategories( $viewedCategories );
+    SettingsData::saveOverrideWeightCategories( $overrideWeightCategories );
 
     wp_redirect( admin_url( 'admin.php?page=' . $this->page_name ) );
     exit;

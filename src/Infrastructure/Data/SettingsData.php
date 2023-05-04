@@ -5,6 +5,8 @@ namespace LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data;
 class SettingsData {
   private static $options = [
     'available_categories'  => 'lb_tradeinn_categories',
+    'categoriesDimension'   => '_lb_tradeinn_cat_dimension',
+    'categoriesWeight'      => '_lb_tradeinn_cat_weight',
     'min_price'             => 'lb_tradeinn_min_price',
     'max_weight'            => 'lb_tradeinn_max_weight',
     'multiplicator'         => 'lb_tradeinn_multiplicator',
@@ -12,10 +14,24 @@ class SettingsData {
     'stock'                 => 'lb_tradeinn_stock',
     'selected_categories'   => 'lb_tradeinn_selected_categories',
     'weight_settings'       => 'lb_tradeinn_weight_settings',
+    'override_weight_categories' => '_lb_tradeinn_override_weight_categories',
+    'viewed_categories'     => '_lb_tradeinn_viewed_categories',
   ];
 
   static function getCategories() {
     return get_option( self::$options['available_categories'], [] );
+  }
+
+  static function getCategoriesDimension() {
+    return get_option( self::$options['categoriesDimension'], [] );
+  }
+
+  static function getCategoriesOverrideWeight() {
+    return get_option( self::$options['override_weight_categories'], [] );
+  }
+
+  static function getCategoriesWeight() {
+    return get_option( self::$options['categoriesWeight'], [] );
   }
 
   static function getMinPrice() {
@@ -39,6 +55,10 @@ class SettingsData {
     return get_option( self::$options['parent_category'], '0' );
   }
 
+  static function getViewedCategories() {
+    return get_option( self::$options['viewed_categories'], [] );
+  }
+
   static function getWeightSettings() {
     return get_option( self::$options['weight_settings'], [] );
   }
@@ -49,6 +69,22 @@ class SettingsData {
 
   static function saveCategories( $categories ) {
     update_option( self::$options['available_categories'], $categories, false );
+  }
+
+  static function saveCategoriesDimension( $categories ) {
+    update_option( self::$options['categoriesDimension'], $categories, false );
+  }
+  
+  static function saveCategoriesWeight( $categories ) {
+    update_option( self::$options['categoriesWeight'], $categories, false );
+  }
+
+  static function saveOverrideWeightCategories( $categories ) {
+    update_option( self::$options['override_weight_categories'], $categories, false );
+  }
+
+  static function saveViewedCategories( $categories ) {
+    update_option( self::$options['viewed_categories'], $categories, false );
   }
 
   static function saveMinPrice( $price ) {
