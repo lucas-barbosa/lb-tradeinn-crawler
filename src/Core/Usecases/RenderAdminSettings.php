@@ -16,8 +16,8 @@ class RenderAdminSettings {
 
   function setHooks() {
     if ( is_admin() ) {
-      add_action( 'admin_action_run_categories_crawler', array( $this, 'run_crawler_get_categories' ) );
-      add_action( 'admin_action_run_products_crawler', array( $this, 'run_crawler_get_products' ) );
+      add_action( 'admin_action_run_tradeinn_categories_crawler', array( $this, 'run_crawler_get_categories' ) );
+      add_action( 'admin_action_run_tradeinn_products_crawler', array( $this, 'run_crawler_get_products' ) );
       add_action( 'admin_post_lb_tradeinn_crawler_available_categories', array( $this, 'handle_set_selected_categories' ) );
       add_action( 'admin_post_lb_tradeinn_crawler_stock', array( $this, 'handle_set_stock' ) );
       add_action( 'admin_post_lb_tradeinn_crawler_weight_settings', array( $this, 'handle_set_weight_settings' ) );
@@ -98,15 +98,17 @@ class RenderAdminSettings {
       for ( $i = 0; $i < count( $_POST['_min_price'] ); $i++ ) {
         $min_weight = sanitize_text_field( $_POST['_min_weight'][$i] );
         $max_weight = sanitize_text_field( $_POST['_max_weight'][$i] );
+        $max_size = sanitize_text_field( $_POST['_max_size'][$i] );
         $price = sanitize_text_field( $_POST['_min_price'][$i] );
 
-        if ( empty( $price ) || ( empty( $min_weight ) && empty( $max_weight ) ) ) {
+        if ( empty( $price ) || ( empty( $min_weight ) && empty( $max_weight ) && empty( $max_size ) ) ) {
           continue;
         }
 
         $data[] = array(
           'min_weight' => empty( $min_weight ) ? 0 : $min_weight,
           'max_weight' => $max_weight,
+          'max_size'   => $max_size,
           'min_price'  => $price
         );
       }
@@ -128,9 +130,18 @@ class RenderAdminSettings {
       $max_weight = $max_weights[0];
     }
 
+    $max_sizes = array_column( $data, 'max_size' );
+    $max_size = null;
+
+    if ( count( $max_sizes ) > 0 ) {
+      rsort( $max_sizes );
+      $max_size = $max_sizes[0];
+    }
+
     SettingsData::saveWeightSettings( $data );
     SettingsData::saveMinPrice( $min_price );
     SettingsData::saveMaxWeight( $max_weight );
+    SettingsData::saveMaxSize( $max_size );
 
     wp_redirect( admin_url( 'admin.php?page=' . $this->page_name ) );
     exit;

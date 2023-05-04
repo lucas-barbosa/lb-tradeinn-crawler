@@ -227,7 +227,7 @@ class CreateProduct {
 
 		$this->setPriceAndStock( $productVariation, $price, $stock );
 
-		$productVariation = $this->setDimensions( $productVariation, $variation->getDimensions() );
+		$productVariation = $this->setDimensions( $productVariation, $variation->getDimensions(), $variation->getWeight() );
 
 		$this->saveProduct( $productVariation, true, $price, $stock );
 
@@ -493,7 +493,7 @@ class CreateProduct {
     $product->set_description( $description );
     $product->set_sku( $productData->getSku() );
     
-    $product = $this->setDimensions( $product, $productData->getDimensions() );
+    $product = $this->setDimensions( $product, $productData->getDimensions(), $productData->getWeight() );
     $product = $this->setImages( $product, $productData->getImages() );
     $product = $this->setMetaData( $product, $productData );
 
@@ -511,9 +511,9 @@ class CreateProduct {
 		return $product;
 	}
 
-  private function setDimensions( $product, array $dimensions ) {
-    if ( isset( $dimensions['weight'] ) ) {
-			$convertedWeight = Utils::convert_weight_to_woocommerce_unit( $dimensions['weight'] );
+  private function setDimensions( $product, array $dimensions, $weight ) {
+    if ( isset( $weight ) ) {
+			$convertedWeight = Utils::convert_weight_to_woocommerce_unit( $weight );
       $product->set_weight( $convertedWeight );
     }
 

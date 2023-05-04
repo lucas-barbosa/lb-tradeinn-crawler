@@ -5,6 +5,29 @@ namespace LucasBarbosa\LbTradeinnCrawler\Core\Usecases;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\IdMapper;
 
 class Utils {
+	static function convertDimensionToUnit( $value, $productUnit, $desirableUnit = '' ) {
+		if ( empty( $value ) ) {
+			return 0;
+		}
+
+		$woocommerceUnit = empty( $desirableUnit ) ? get_option( 'woocommerce_dimension_unit' ) : $desirableUnit;
+
+		if ( $woocommerceUnit === $productUnit ) {
+			return $value;
+		}
+
+		$conversion_factors = array(
+			'cm' => 1.0,
+			'mm' => 0.1,
+			'm' => 100.0
+		);
+
+		$system_value = $value * $conversion_factors[$productUnit];
+  	$output_value = $system_value / $conversion_factors[$woocommerceUnit];
+
+		return $output_value;
+	}
+	
 	static function convert_weight_to_woocommerce_unit( $weight ) {
 		if ( $weight === 0 ) {
 			return 0;

@@ -34,6 +34,7 @@ class CategoryCrawler extends Crawler implements ICategoryCrawler  {
       if ( count( $categoryData ) < 3 ) continue;
 
       $params = [ [
+        'internalId'    => $category,
         'categoryId'    => $categoryData[2] ?? '',
         'subcategoryId' => $categoryData[3] ?? '',
         'page'  => 0,
@@ -68,6 +69,7 @@ class CategoryCrawler extends Crawler implements ICategoryCrawler  {
       'products'  => $result->getProducts(),
       'storeId'   => $props['store']['id'],
       'storeName' => $props['store']['name'],
+      'categoryId' => $props['internalId']
     ] );
     
     return $result;
@@ -109,7 +111,8 @@ class CategoryCrawler extends Crawler implements ICategoryCrawler  {
         'storeId' => $result['storeId'],
         'storeName' => $result['storeName'],
         'language'  => $result['language'],
-        'productId' => $product        
+        'productId' => $product,
+        'categoryId' => $result['categoryId']
       ];
 
       do_action( 'lb_tradeinn_crawler_product_found', $params );

@@ -42,9 +42,58 @@ class ProductVariationEntity {
     return $this->invalid;
   }
   
+  public function getLargestSide() {
+    if ( ! is_array( $this->dimensions )
+      || ! isset( $this->dimensions['height'] )
+      || ! isset( $this->dimensions['length'] )
+      || ! isset( $this->dimensions['width'] )
+    ) {
+      return [
+        'value' => 0,
+        'unit'  => 'cm'
+      ];
+    }
+
+    $productUnit = isset( $dimensions['unit'] ) ? $dimensions['unit'] : 'cm';
+    
+    $sides = [
+      $this->dimensions['height'],
+      $this->dimensions['length'],
+      $this->dimensions['width']
+    ];
+    
+    $largestSide = max( $sides );
+
+    return [
+      'value' => $largestSide,
+      'unit'  => $productUnit
+    ];
+  }
+  
   public function getPrice() {
     $multiplicator = SettingsData::getMultiplicator();
     return round( $this->price * $multiplicator, 2 );
+  }
+
+  public function getSize() {
+    if ( ! is_array( $this->dimensions )
+      || ! isset( $this->dimensions['height'] )
+      || ! isset( $this->dimensions['length'] )
+      || ! isset( $this->dimensions['width'] )
+    ) {
+      return [
+        'value' => 0,
+        'unit'  => 'cm'
+      ];
+    }
+
+    $productUnit = isset( $this->dimensions['unit'] ) ? $this->dimensions['unit'] : 'cm';
+    $size = $this->dimensions['height'] + $this->dimensions['length'] + $this->dimensions['width'];
+    
+    return [
+      'value' => $size,
+      'unit'  => $productUnit
+    ];
   }
 
   public function getWeight() {
@@ -100,6 +149,11 @@ class ProductVariationEntity {
     return $this;
   }
 
+  public function setWeight( $weight ) {
+    $this->dimensions['weight'] = $weight;
+    return $this;
+  }
+  
   private function sanitizePrice( string $priceString ) : float {
     $price = (float) $priceString;//sanitize_text_field( $priceString );
 		return round( max( $price, 0 ), 2 );

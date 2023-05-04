@@ -8,6 +8,7 @@ class SettingsData {
     'categoriesDimension'   => '_lb_tradeinn_cat_dimension',
     'categoriesWeight'      => '_lb_tradeinn_cat_weight',
     'min_price'             => 'lb_tradeinn_min_price',
+    'max_size'              => 'lb_tradeinn_max_size',
     'max_weight'            => 'lb_tradeinn_max_weight',
     'multiplicator'         => 'lb_tradeinn_multiplicator',
     'parent_category'       => 'lb_tradeinn_parent_category',
@@ -36,6 +37,10 @@ class SettingsData {
 
   static function getMinPrice() {
     return get_option( self::$options['min_price'], 0 );
+  }
+
+  static function getMaxSize() {
+    return get_option( self::$options['max_size'], null );
   }
 
   static function getMaxWeight() {
@@ -89,6 +94,10 @@ class SettingsData {
 
   static function saveMinPrice( $price ) {
     update_option( self::$options['min_price'], $price, false );
+  }
+
+  static function saveMaxSize( $size ) {
+    update_option( self::$options['max_size'], $size, false );
   }
 
   static function saveMaxWeight( $weight ) {

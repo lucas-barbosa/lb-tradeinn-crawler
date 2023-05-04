@@ -7,8 +7,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if( current_user_can( 'manage_woocommerce' ) ) {
-  $crawlerCategoriesUrl = wp_nonce_url( admin_url( 'admin.php?page=lb-tradeinn-crawler&action=run_categories_crawler' ), 'lb-tradeinn-crawler' );
-  $crawlerProductsUrl = wp_nonce_url( admin_url( 'admin.php?page=lb-tradeinn-crawler&action=run_products_crawler' ), 'lb-tradeinn-crawler' );
+  $crawlerCategoriesUrl = wp_nonce_url( admin_url( 'admin.php?page=lb-tradeinn-crawler&action=run_tradeinn_categories_crawler' ), 'lb-tradeinn-crawler' );
+  $crawlerProductsUrl = wp_nonce_url( admin_url( 'admin.php?page=lb-tradeinn-crawler&action=run_tradeinn_products_crawler' ), 'lb-tradeinn-crawler' );
 
   $currentStock = SettingsData::getStock();
   $multiplicator = SettingsData::getMultiplicator();
@@ -95,12 +95,13 @@ if( current_user_can( 'manage_woocommerce' ) ) {
           <input type="hidden" name="action" value="lb_tradeinn_crawler_weight_settings">
           <input type="hidden" name="lb-nonce" value="<?php echo wp_create_nonce( 'lb_tradeinn_crawler_nonce' ) ?>">
 
-          <table id="lb-tradeinn-weight-settings" class="lb-table widefat" style="max-width: 550px">
+          <table id="lb-tradeinn-weight-settings" class="lb-table widefat" style="max-width: 650px">
             <thead>
               <tr>
                 <th>Peso Mínimo</th>
                 <th></th>
                 <th>Peso Máximo</th>
+                <th>Tamanho Máximo</th>
                 <th>Valor Mínimo</th>
                 <th>Ações</th>
               </tr>
@@ -111,7 +112,7 @@ if( current_user_can( 'manage_woocommerce' ) ) {
 
             <tfoot>
               <tr>
-                <td colspan="5">
+                <td colspan="6">
                   <button class="button-primary" type="submit">Salvar</button>
                   <button class="button-secondary" type="button" id="lb-tradeinn-new-line">Adicionar Linha</button>
                 </td>

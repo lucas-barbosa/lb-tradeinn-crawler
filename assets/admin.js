@@ -7,7 +7,7 @@
       row.remove();
     }
 
-    function renderRow(min = '', max = '', price = '') {
+    function renderRow(min = '', max = '', price = '', maxSize = '') {
       const element = `
       <tr>
         <td>
@@ -20,6 +20,11 @@
         <td>
           <input class="lb-weight-input" type="number" min="0" name="_max_weight[]" value="${max}">
           <span>gramas</span>
+        </td>
+
+        <td>
+          <input class="lb-weight-input" type="number" min="0" name="_max_size[]" value="${maxSize}">
+          <span>cm</span>
         </td>
 
         <td>
@@ -37,7 +42,7 @@
     function renderTableData() {
       if (lb_tradeinn_crawler && lb_tradeinn_crawler.weight_settings) {
         if (lb_tradeinn_crawler.weight_settings.length > 0) {
-          lb_tradeinn_crawler.weight_settings.map(el => renderRow(el.min_weight, el.max_weight, el.min_price));
+          lb_tradeinn_crawler.weight_settings.map(el => renderRow(el.min_weight, el.max_weight, el.min_price, el.max_size || ''));
           return;
         }
       }

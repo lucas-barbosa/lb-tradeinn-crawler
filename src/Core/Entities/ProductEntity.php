@@ -46,6 +46,16 @@ class ProductEntity {
   public function getCategories() {
     return $this->categories;
   }
+
+  public function getCategoryId() {
+    $props = $this->getParentStoreProps();
+
+    if ( isset( $props['categoryId'] ) ) {
+      return $props['categoryId'];
+    }
+
+    return '';
+  }
   
   public function getDescription() {
     return $this->description;
@@ -79,6 +89,36 @@ class ProductEntity {
     return $this->images;
   }
   
+  public function getLargestSide() {
+    $dimensions = $this->getDimensions();
+
+    if ( ! is_array( $dimensions )
+      || ! isset( $dimensions['height'] )
+      || ! isset( $dimensions['length'] )
+      || ! isset( $dimensions['width'] )
+    ) {
+      return [
+        'value' => 0,
+        'unit'  => 'cm'
+      ];
+    }
+
+    $productUnit = isset( $dimensions['unit'] ) ? $dimensions['unit'] : 'cm';
+    
+    $sides = [
+      $dimensions['height'],
+      $dimensions['length'],
+      $dimensions['width']
+    ];
+    
+    $largestSide = max( $sides );
+
+    return [
+      'value' => $largestSide,
+      'unit'  => $productUnit
+    ];
+  }
+
   public function getParentStoreProps() {
     return $this->parentStoreProps;
   }
@@ -99,7 +139,30 @@ class ProductEntity {
     $multiplicator = SettingsData::getMultiplicator();
     return round( $this->price * $multiplicator, 2 );
   }
+   
+  public function getSize() {
+    $dimensions = $this->getDimensions();
+
+    if ( ! is_array( $dimensions )
+      || ! isset( $dimensions['height'] )
+      || ! isset( $dimensions['length'] )
+      || ! isset( $dimensions['width'] )
+    ) {
+      return [
+        'value' => 0,
+        'unit'  => 'cm'
+      ];
+    }
+
+    $productUnit = isset( $dimensions['unit'] ) ? $dimensions['unit'] : 'cm';
+    $size = $dimensions['height'] + $dimensions['length'] + $dimensions['width'];
     
+    return [
+      'value' => $size,
+      'unit'  => $productUnit
+    ];
+  }
+  
   public function getSku() {
     return empty( $this->sku ) ? '' : 'TT-' . $this->sku;
   }
@@ -113,6 +176,10 @@ class ProductEntity {
   }
 
   public function getWeight() {
+    if ( isset( $this->dimensions ) && is_array( $this->dimensions ) && isset ( $this->dimensions['weight'] ) && $this->dimensions['weight'] > 0 ) {
+      return $this->dimensions['weight'] ?? 0;
+    }
+
     $dimensions = $this->getDimensions();
     return $dimensions['weight'] ?? 0;
   }
@@ -214,6 +281,10 @@ class ProductEntity {
       $props['productId'] = $parentStoreProps['productId'];
     }
 
+    if ( isset( $parentStoreProps['categoryId'] ) ) {
+      $props['categoryId'] = $parentStoreProps['categoryId'];
+    }
+
     $this->parentStoreProps = $props;
     return $this;
   }
@@ -242,6 +313,10 @@ class ProductEntity {
     return $this;
   }
 
+  public function setWeight( $weight ) {
+    $this->dimensions['weight'] = $weight;
+    return $this;
+  }
 
   private function sanitizePrice( string $priceString ) : float {
     $price = (float) $priceString;//sanitize_text_field( $priceString );
