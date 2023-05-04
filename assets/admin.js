@@ -1,5 +1,5 @@
-(function( $ ) {
-	'use strict';
+(function ($) {
+  'use strict';
 
   $(document).ready(() => {
     function deleteRow() {
@@ -52,7 +52,7 @@
 
     function renderCategory(id, name, parent = '', value = '', title = true, hasChilds = true) {
       if (!value) value = id;
-      
+
       const element = `
         <li>
           <label id="lb-tradeinn-item_${id}">
@@ -61,11 +61,13 @@
               name="selected_tradeinn_categories[]"
               value="${value}"
               ${value && selectedCategories.includes(value) ? 'checked' : ''}
-              ${title ? `class="lb-tradeinn-title"`: ''}
+              ${title ? `class="lb-tradeinn-title"` : ''}
             >${name}
+
             ${title && hasChilds ? `<button class="lb-tradeinn-toggle" type="button">Exibir/Ocultar</button>` : ''}
-            ${title && hasChilds ? `<ul class="lb-tradeinn-subitems"></ul>` : ''}
           </label>
+
+          ${title && hasChilds ? `<ul class="lb-tradeinn-subitems"></ul>` : ''}
         </li>
       `;
 
@@ -88,15 +90,15 @@
           items.map(item => {
             const slug = `${parentSlug}${!!parentSlug ? '-' : ''}${slugify(item.name)}`;
             const hasChilds = item.childs && item.childs.length > 0 ? true : false;
-            const parent = !parentSlug ? '' :  `#lb-tradeinn-item_${parentSlug} > .lb-tradeinn-subitems`;
-            
+            const parent = !parentSlug ? '' : `#lb-tradeinn-item_${parentSlug} ~ .lb-tradeinn-subitems`;
+
             renderCategory(slug, item.name, parent, !hasChilds ? `${parentValue}|${item.id}` : '', hasChilds, hasChilds);
 
             if (hasChilds) renderCategories(item.childs, slug, !parentValue ? `${item.name}|${item.id}` : `${parentValue}|${item.id}`);
           });
         };
 
-        
+
         if (!categories.length) {
           $('#lb-tradeinn-save-categories').prop('disabled', true);
           return;
@@ -111,11 +113,11 @@
     }
 
     function selectAll() {
-      $(this).parent().find('.lb-tradeinn-subitems li input').prop('checked', this.checked);
+      $(this).parent().parent().find('.lb-tradeinn-subitems li label[id^="lb-tradeinn-item"] input').prop('checked', this.checked);
     }
 
     function toggle() {
-      $(this).parent().children('.lb-tradeinn-subitems').slideToggle();
+      $(this).parent().parent().children('.lb-tradeinn-subitems').slideToggle();
     }
 
     $(document).on('change', '.lb-tradeinn-title', selectAll);
@@ -124,4 +126,4 @@
     renderTableData();
     renderAvailableCategories();
   });
-})( jQuery );
+})(jQuery);

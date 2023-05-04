@@ -41,17 +41,3 @@ $core->load();
 
 $infra = new InitInfra();
 $infra->load();
-
-// add_action( 'shutdown', 'lb_test_fn');
-
-function lb_test_fn() {
-  do_action( 'lb_tradein_product_crawler', 
-  [
-    'storeId'   => '3',
-    'storeName' => 'trekkinn',
-    'productId' => '137059647',
-    'language'  => 'por'
-  ] ); 
-
-  remove_action( 'shutdown', 'lb_test_fn');
-}
