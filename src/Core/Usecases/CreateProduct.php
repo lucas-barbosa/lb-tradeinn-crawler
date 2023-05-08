@@ -35,6 +35,8 @@ class CreateProduct {
 
     $product = $this->setAdditionalData( $product, $productData );
 
+		$this->setSyncData( $product );
+
 		do_action( 'lb_tradeinn_product_created', [ $product->get_id(), $productData->getParentStoreProps() ]);
   }
 
@@ -501,6 +503,19 @@ class CreateProduct {
 
     return $product;
   }
+
+	private function setSyncData( $product ) {
+		if ( $product->get_weight() > 0 ) {
+			$sync_to = apply_filters( '_lb_sync_created_product_to', [] );
+
+			if ( ! empty( $sync_to ) ) {
+				$product->update_meta_data( '_lb_woo_multistore_reply_to', $sync_to );
+				$product->update_meta_data( '_lb_woo_multistore_manage_child_stock', $sync_to );
+				$product->update_meta_data( '_lb_woo_multistore_should_enqueue', 'yes' );
+				$product->save();
+			}
+		}
+	}
 
   private function setBrand( $product, $brand ) {
 		$id = $product->get_id();

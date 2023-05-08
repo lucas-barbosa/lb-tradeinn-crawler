@@ -4,7 +4,7 @@
  * @wordpress-plugin
  * Plugin Name:       LB TradeInn Crawler
  * Description:       LB TradeInn Crawler copy TradeInn products to your ecommerce.
- * Version:           1.2.2
+ * Version:           1.3.0
  * Author:            Lucas Barbosa
  * Author URI:        https://github.com/lucas-barbosa
  * License:           GPL-2.0+
