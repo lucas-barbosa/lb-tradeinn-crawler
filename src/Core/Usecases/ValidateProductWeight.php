@@ -11,6 +11,10 @@ class ValidateProductWeight {
   }
 
   public function execute( ProductEntity $product ) {
+    if ( $product->getInvalid() ) {
+      return;
+    }
+    
     $categoryId = $product->getCategoryId();
 
     $overrideDimensions = $this->checkCategoryShouldOverrideWeight( $categoryId );
