@@ -7,6 +7,7 @@ class SettingsData {
     'available_categories'  => 'lb_tradeinn_categories',
     'categoriesDimension'   => '_lb_tradeinn_cat_dimension',
     'categoriesWeight'      => '_lb_tradeinn_cat_weight',
+    'deniedBrands'          => 'lb_tradeinn_denied_brands',
     'min_price'             => 'lb_tradeinn_min_price',
     'max_size'              => 'lb_tradeinn_max_size',
     'max_weight'            => 'lb_tradeinn_max_weight',
@@ -33,6 +34,10 @@ class SettingsData {
 
   static function getCategoriesWeight() {
     return get_option( self::$options['categoriesWeight'], [] );
+  }
+
+  static function getDeniedBrands() {
+    return get_option( self::$options['deniedBrands'], '' );
   }
 
   static function getMinPrice() {
@@ -82,6 +87,10 @@ class SettingsData {
   
   static function saveCategoriesWeight( $categories ) {
     update_option( self::$options['categoriesWeight'], $categories, false );
+  }
+
+  static function saveDeniedBrands( $brands ) {
+    update_option( self::$options['deniedBrands'], $brands, false );
   }
 
   static function saveOverrideWeightCategories( $categories ) {

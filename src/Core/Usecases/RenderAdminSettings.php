@@ -18,6 +18,7 @@ class RenderAdminSettings {
     if ( is_admin() ) {
       add_action( 'admin_action_run_tradeinn_categories_crawler', array( $this, 'run_crawler_get_categories' ) );
       add_action( 'admin_action_run_tradeinn_products_crawler', array( $this, 'run_crawler_get_products' ) );
+      add_action( 'admin_post_lb_tradeinn_denied_brands', array( $this, 'handle_set_denied_brands' ) );
       add_action( 'admin_post_lb_tradeinn_crawler_available_categories', array( $this, 'handle_set_selected_categories' ) );
       add_action( 'admin_post_lb_tradeinn_crawler_stock', array( $this, 'handle_set_stock' ) );
       add_action( 'admin_post_lb_tradeinn_crawler_weight_settings', array( $this, 'handle_set_weight_settings' ) );
@@ -62,6 +63,23 @@ class RenderAdminSettings {
     ) );
       
     wp_enqueue_script( $this->plugin_name );
+  }
+
+  function handle_set_denied_brands() {
+    if( ! current_user_can( 'manage_woocommerce' ) || ! isset( $_POST['lb-nonce'] ) || ! wp_verify_nonce( $_POST['lb-nonce'], 'lb_tradeinn_crawler_nonce' ) ) {
+      wp_die( __( 'Invalid nonce specified', $this->plugin_name ), __( 'Error', $this->plugin_name ), array(
+        'response' 	=> 403,
+        'back_link' => 'admin.php?page=' . $this->page_name,
+      ) );
+
+      return;
+    }
+
+    $brands = sanitize_textarea_field( $_POST['denied_brands'] );
+    SettingsData::saveDeniedBrands( $brands );
+
+    wp_redirect( admin_url( 'admin.php?page=' . $this->page_name ) );
+    exit;    
   }
 
   function handle_set_stock() {
