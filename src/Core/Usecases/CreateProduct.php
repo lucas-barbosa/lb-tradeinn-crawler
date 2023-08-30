@@ -22,6 +22,13 @@ class CreateProduct {
 
   public function execute( ProductEntity $productData ) {
 		if ( $productData->getInvalid() ) {
+			$productId = $productData->getId();
+			$storeName = $productData->getStoreName();
+
+			$url = "https://www.tradeinn.com/" . $storeName . "/" . $productId;
+			
+			do_action( 'lb_crawler_block_url', $url );
+
 			$this->deleteProductIfExists( $productData );
 			return;
 		}

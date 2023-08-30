@@ -16,7 +16,12 @@ class Products {
   }
 
   static function isAlreadyCrawled( $storeName, $productId ) {
-    // TODO: check product was rejected before
+    $url = "https://www.tradeinn.com/" . $storeName . "/" . $productId;
+
+    if ( apply_filters( 'lb_crawler_check_block', false, $url ) ) {
+      return true;
+    }
+
     return self::checkUrlExistsInMeta( $storeName, $productId );
   }
 }
