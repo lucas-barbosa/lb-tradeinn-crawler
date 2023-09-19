@@ -21,116 +21,128 @@ class SettingsData {
   ];
 
   static function getCategories() {
-    return get_option( self::$options['available_categories'], [] );
+    $data = SettingsStorage::get( self::$options['available_categories'] );
+    return is_null( $data ) ? [] : $data;
   }
 
   static function getCategoriesDimension() {
-    return get_option( self::$options['categoriesDimension'], [] );
+    $data = SettingsStorage::get( self::$options['categoriesDimension'] );
+    return is_null( $data ) ? [] : $data;
   }
 
   static function getCategoriesOverrideWeight() {
-    return get_option( self::$options['override_weight_categories'], [] );
+    $data = SettingsStorage::get( self::$options['override_weight_categories'] );
+    return is_null( $data ) ? [] : $data;
   }
 
   static function getCategoriesWeight() {
-    return get_option( self::$options['categoriesWeight'], [] );
+    $data = SettingsStorage::get( self::$options['categoriesWeight'] );
+    return is_null( $data ) ? [] : $data;
   }
 
   static function getDeniedBrands() {
-    return get_option( self::$options['deniedBrands'], '' );
+    $data = SettingsStorage::get( self::$options['deniedBrands'] );
+    return is_null( $data ) ? '' : $data;
   }
 
   static function getMinPrice() {
-    return get_option( self::$options['min_price'], 0 );
+    $data = SettingsStorage::get( self::$options['min_price'] );
+    return is_null( $data ) ? 0 : $data;
   }
 
   static function getMaxSize() {
-    return get_option( self::$options['max_size'], null );
+    return SettingsStorage::get( self::$options['max_size'] );
   }
 
   static function getMaxWeight() {
-    return get_option( self::$options['max_weight'], null );
+    return SettingsStorage::get( self::$options['max_weight'] );
   }
 
   static function getMultiplicator() {
-    $value = (float)get_option( self::$options['multiplicator'], '1' );
+    $value = SettingsStorage::get( self::$options['multiplicator'] );
+    $value = is_null( $value ) ? '1' : (float)$value;
     return is_numeric( $value ) ? $value : 1;
   }
 
   static function getStock() {
-    return get_option( self::$options['stock'], '' );
+    $data = SettingsStorage::get( self::$options['stock'] );
+    return is_null( $data ) ? '' : $data;
   }
 
   static function getParentCategory() {
-    return get_option( self::$options['parent_category'], '0' );
+    $data = SettingsStorage::get( self::$options['parent_category'] );
+    return is_null( $data ) ? 0 : $data;
   }
 
   static function getViewedCategories() {
-    return get_option( self::$options['viewed_categories'], [] );
+    $data = SettingsStorage::get( self::$options['viewed_categories'] );
+    return is_null( $data ) ? [] : $data;
   }
 
   static function getWeightSettings() {
-    return get_option( self::$options['weight_settings'], [] );
+    $data = SettingsStorage::get( self::$options['weight_settings'] );
+    return is_null( $data ) ? [] : $data;
   }
 
   static function getSelectedCategories() {
-    return get_option( self::$options['selected_categories'], [] );
+    $data = SettingsStorage::get( self::$options['selected_categories'] );
+    return is_null( $data ) ? [] : $data;
   }
 
   static function saveCategories( $categories ) {
-    update_option( self::$options['available_categories'], $categories, false );
+    SettingsStorage::insert( self::$options['available_categories'], $categories );
   }
 
   static function saveCategoriesDimension( $categories ) {
-    update_option( self::$options['categoriesDimension'], $categories, false );
+    SettingsStorage::insert( self::$options['categoriesDimension'], $categories );
   }
   
   static function saveCategoriesWeight( $categories ) {
-    update_option( self::$options['categoriesWeight'], $categories, false );
+    SettingsStorage::insert( self::$options['categoriesWeight'], $categories );
   }
 
   static function saveDeniedBrands( $brands ) {
-    update_option( self::$options['deniedBrands'], $brands, false );
+    SettingsStorage::insert( self::$options['deniedBrands'], $brands );
   }
 
   static function saveOverrideWeightCategories( $categories ) {
-    update_option( self::$options['override_weight_categories'], $categories, false );
+    SettingsStorage::insert( self::$options['override_weight_categories'], $categories );
   }
 
   static function saveViewedCategories( $categories ) {
-    update_option( self::$options['viewed_categories'], $categories, false );
+    SettingsStorage::insert( self::$options['viewed_categories'], $categories );
   }
 
   static function saveMinPrice( $price ) {
-    update_option( self::$options['min_price'], $price, false );
+    SettingsStorage::insert( self::$options['min_price'], $price );
   }
 
   static function saveMaxSize( $size ) {
-    update_option( self::$options['max_size'], $size, false );
+    SettingsStorage::insert( self::$options['max_size'], $size );
   }
 
   static function saveMaxWeight( $weight ) {
-    update_option( self::$options['max_weight'], $weight, false );
+    SettingsStorage::insert( self::$options['max_weight'], $weight );
   }
 
   static function saveMultiplicator( $value ) {
-    update_option( self::$options['multiplicator'], $value, false );
+    SettingsStorage::insert( self::$options['multiplicator'], $value );
   }
   
   static function saveParentCategory( $value ) {
-    update_option( self::$options['parent_category'], $value, false );
+    SettingsStorage::insert( self::$options['parent_category'], $value );
   }
 
   static function saveSelectedCategories( $categories ) {
-    update_option( self::$options['selected_categories'], $categories, false );
+    SettingsStorage::insert( self::$options['selected_categories'], $categories );
   }
 
   static function saveStock( $stock ) {
-    update_option( self::$options['stock'], $stock, false );
+    SettingsStorage::insert( self::$options['stock'], $stock );
   }
 
   static function saveWeightSettings( $data ) {
-    update_option( self::$options['weight_settings'], $data, false );
+    SettingsStorage::insert( self::$options['weight_settings'], $data );
   }
 
   static function deleteOldActions( $selectedCategories ) {
