@@ -84,7 +84,7 @@
           <label id="lb-tradeinn-item_${id}">
             <input
               type="checkbox"
-              name="selected_tradeinn_categories[]"
+              name="sel_cat[]"
               value="${value}"
               ${value && selectedCategories.includes(value) ? 'checked' : ''}
               ${title ? `class="lb-tradeinn-title"` : ''}
@@ -97,10 +97,10 @@
 
           ${!hasChilds ? `
           <div style="display:inline-flex;gap:5px;align-items:center;">
-            <div><input type="checkbox" name="viewed_categories[]" value="${value}" ${value && viewedCategories.includes(value) ? 'checked' : ''}></div>
-            <label><strong>Peso (g): </strong><input type="number" name="lb-tradeinn-weight[${value}]" style="width: 70px" min="0" step="any" value="${getCategoryWeight(value)}"></label>
-            <label><strong>Dimensão (cm): </strong><input type="number" name="lb-tradeinn-dimension[${value}]" style="width: 70px" min="0" step="any" value="${getCategoryDimension(value)}"></label>
-            <label><input type="checkbox" name="override_weight_categories[]" value="${value}" ${value && overrideWeight.includes(value) ? 'checked' : ''}> Usar Peso?</label>
+            <div><input type="checkbox" name="vw_cat[]" value="${value}" ${value && viewedCategories.includes(value) ? 'checked' : ''}></div>
+            <label><strong>Peso (g): </strong><input type="number" name="lt_wei[${value}]" style="width: 70px" min="0" step="any" value="${getCategoryWeight(value)}"></label>
+            <label><strong>Dimensão (cm): </strong><input type="number" name="lt_dim[${value}]" style="width: 70px" min="0" step="any" value="${getCategoryDimension(value)}"></label>
+            <label><input type="checkbox" name="ow_cat[]" value="${value}" ${value && overrideWeight.includes(value) ? 'checked' : ''}> Usar Peso?</label>
           </div>` : ''}
         </li>
       `;
@@ -154,9 +154,166 @@
       $(this).parent().parent().children('.lb-tradeinn-subitems').slideToggle();
     }
 
+    const getValues = (field_name) => {
+      const $selCatInputs = $(field_name);
+      const uniqueValues = [];
+
+      $selCatInputs.each(function () {
+        const value = $(this).val();
+
+        if (value !== "" && uniqueValues.indexOf(value) === -1) {
+          uniqueValues.push(value);
+        }
+      });
+
+      return uniqueValues;
+    }
+
+    function handleError(errorMessage) {
+      alert('Erro: ' + errorMessage);
+      $('#tradeinn-categories').prop('disabled', false);
+      $('#lb-tradeinn-save-categories').prop('disabled', false);
+      $('#lb-tradeinn-save-categories').html('Salvar');
+    }
+
+    function processSelectedCategories() {
+      const $categories = getValues('input[name="sel_cat[]"]:checked');
+
+      $.ajax({
+        type: 'POST',
+        url: lb_tradeinn_crawler.ajaxurl,
+        data: {
+          categories: $categories,
+          action: 'process_selected_categories',
+          nonce: lb_tradeinn_crawler.nonce
+        },
+        dataType: 'JSON',
+        success: function () {
+          processViewedCategories();
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          handleError(errorThrown);
+        }
+      });
+    }
+
+    function processViewedCategories() {
+      const $categories = getValues('input[name="vw_cat[]"]:checked');
+
+      $.ajax({
+        type: 'POST',
+        url: lb_tradeinn_crawler.ajaxurl,
+        data: {
+          viewed: $categories,
+          action: 'process_viewed_categories',
+          nonce: lb_tradeinn_crawler.nonce
+        },
+        dataType: 'JSON',
+        success: function () {
+          processOverrideCategories();
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          handleError(errorThrown);
+        }
+      });
+    }
+
+    function processOverrideCategories() {
+      const $categories = getValues('input[name="ow_cat[]"]:checked');
+
+      $.ajax({
+        type: 'POST',
+        url: lb_tradeinn_crawler.ajaxurl,
+        data: {
+          overrides: $categories,
+          action: 'process_override_weight_categories',
+          nonce: lb_tradeinn_crawler.nonce
+        },
+        dataType: 'JSON',
+        success: function () {
+          processCategoriesDimension();
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          handleError(errorThrown);
+        }
+      });
+    }
+
+    function processCategoriesDimension() {
+      const $categories = {};
+
+      $('input[name^="lt_dim["]').each(function () {
+        const name = $(this).attr('name'); // Exemplo: lt_dim[lucas]
+        const value = $(this).val();
+
+        const match = /\[([^[\]]+)\]/.exec(name);
+
+        if (match && value) {
+          const key = match[1];
+          $categories[key] = value;
+        }
+      });
+
+      $.ajax({
+        type: 'POST',
+        url: lb_tradeinn_crawler.ajaxurl,
+        data: {
+          dimensions: $categories,
+          action: 'process_categories_dimension',
+          nonce: lb_tradeinn_crawler.nonce
+        },
+        dataType: 'JSON',
+        success: function () {
+          processCategoriesWeight();
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          handleError(errorThrown);
+        }
+      });
+    }
+
+    function processCategoriesWeight() {
+      const $categories = {};
+
+      $('input[name^="lt_wei["]').each(function () {
+        const name = $(this).attr('name'); // Exemplo: lt_dim[lucas]
+        const value = $(this).val();
+
+        const match = /\[([^[\]]+)\]/.exec(name);
+
+        if (match && value) {
+          const key = match[1];
+          $categories[key] = value;
+        }
+      });
+
+      $.ajax({
+        type: 'POST',
+        url: lb_tradeinn_crawler.ajaxurl,
+        data: {
+          weights: $categories,
+          action: 'process_categories_weight',
+          nonce: lb_tradeinn_crawler.nonce
+        },
+        dataType: 'JSON',
+        success: function () {
+          location.reload();
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          handleError(errorThrown);
+        }
+      });
+    }
+
     $(document).on('change', '.lb-tradeinn-title', selectAll);
     $(document).on('click', '.lb-tradeinn-toggle', toggle);
-
+    $(document).on('submit', '#tradeinn-categories', function (e) {
+      e.preventDefault();
+      $('#tradeinn-categories').prop('disabled', true);
+      $('#lb-tradeinn-save-categories').html('Aguarde');
+      $('#lb-tradeinn-save-categories').prop('disabled', true);
+      processSelectedCategories();
+    });
     renderTableData();
     renderAvailableCategories();
   });

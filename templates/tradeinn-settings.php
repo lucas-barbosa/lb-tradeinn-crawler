@@ -123,7 +123,7 @@ if( current_user_can( 'manage_woocommerce' ) ) {
       </section>
 
       <section>
-        <form method="POST" action="admin-post.php">
+        <form method="POST" action="admin-post.php" id="tradeinn-categories">
           <input type="hidden" name="action" value="lb_tradeinn_crawler_available_categories">
           <input type="hidden" name="lb-nonce" value="<?php echo wp_create_nonce( 'lb_tradeinn_crawler_nonce' ) ?>">
 

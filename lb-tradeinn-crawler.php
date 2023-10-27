@@ -36,7 +36,7 @@ define( 'LB_TRADEINN_CRAWLER', plugin_basename( __FILE__ ) );
 define( 'LB_TRADEINN_CRAWLER_FILE', __FILE__ );
 define( 'LB_TRADEINN_CRAWLER_DIR', plugin_dir_path( __FILE__ ) );
 
-$core = new InitCore( 'lb_tradeinn_crawler', '1.2.2' );
+$core = new InitCore( 'lb_tradeinn_crawler', '1.3.0' );
 $core->load();
 
 $infra = new InitInfra();

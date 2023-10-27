@@ -50,7 +50,7 @@ class RenderAdminSettings {
       return;
     }
 
-    wp_register_script( $this->plugin_name, plugins_url( 'assets/admin.js', LB_TRADEINN_CRAWLER_FILE ), [ 'jquery' ], $this->version );
+    wp_register_script( $this->plugin_name, plugins_url( 'assets/admin.min.js', LB_TRADEINN_CRAWLER_FILE ), [ 'jquery' ], $this->version );
 
     wp_localize_script( $this->plugin_name, $this->plugin_name, array(
       'weight_settings' => SettingsData::getWeightSettings(),
@@ -59,7 +59,9 @@ class RenderAdminSettings {
       'viewed_categories'     => SettingsData::getViewedCategories(),
       'categories_dimension'  => SettingsData::getCategoriesDimension(),
       'categories_weight'     => SettingsData::getCategoriesWeight(),
-      'override_weight'       => SettingsData::getCategoriesOverrideWeight()
+      'override_weight'       => SettingsData::getCategoriesOverrideWeight(),
+      'ajaxurl'               => admin_url( 'admin-ajax.php' ),
+      'nonce'                 => wp_create_nonce( 'lb_tradeinn_crawler_nonce' ),
     ) );
       
     wp_enqueue_script( $this->plugin_name );
@@ -181,29 +183,29 @@ class RenderAdminSettings {
     $viewedCategories = array();
     $overrideWeightCategories = array();
 
-    if ( isset( $_POST['selected_tradeinn_categories'] ) && is_array( $_POST['selected_tradeinn_categories'] ) ) {
-      $data = $_POST['selected_tradeinn_categories'];
+    if ( isset( $_POST['sel_cat'] ) && is_array( $_POST['sel_cat'] ) ) {
+      $data = $_POST['sel_cat'];
       $data = array_filter( $data );
       $data = array_values( array_unique( $data ) );
     }
 
-    if ( isset( $_POST['viewed_categories'] ) && is_array( $_POST['viewed_categories'] ) ) {
-      $viewedCategories = $_POST['viewed_categories'];
+    if ( isset( $_POST['vw_cat'] ) && is_array( $_POST['vw_cat'] ) ) {
+      $viewedCategories = $_POST['vw_cat'];
       $viewedCategories = array_filter( $viewedCategories );
       $viewedCategories = array_values( array_unique( $viewedCategories ) );
     }
 
-    if ( isset(  $_POST['override_weight_categories'] ) && is_array( $_POST['override_weight_categories'] ) ) {
-      $overrideWeightCategories = $_POST['override_weight_categories'];
+    if ( isset(  $_POST['ow_cat'] ) && is_array( $_POST['ow_cat'] ) ) {
+      $overrideWeightCategories = $_POST['ow_cat'];
       $overrideWeightCategories = array_filter( $overrideWeightCategories );
       $overrideWeightCategories = array_values( array_unique( $overrideWeightCategories ) );
     }
 
-    foreach ( $_POST['lb-tradeinn-weight'] as $key => $value ) {
+    foreach ( $_POST['lt_wei'] as $key => $value ) {
       if ( $value > 0 ) $categoriesWeight[$key] = sanitize_text_field( $value );
     }
 
-    foreach ( $_POST['lb-tradeinn-dimension'] as $key => $value ) {
+    foreach ( $_POST['lt_dim'] as $key => $value ) {
       if ( $value > 0 ) $categoriesDimension[$key] = sanitize_text_field( $value );
     }
     

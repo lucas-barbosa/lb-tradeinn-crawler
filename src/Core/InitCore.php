@@ -6,6 +6,7 @@ use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\CreateProduct;
 use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\CreateTranslation;
 use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\RefreshStock;
 use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\RenderAdminSettings;
+use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\SaveSettingsAjax;
 use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\ValidateProductBrand;
 use LucasBarbosa\LbTradeinnCrawler\Core\Usecases\ValidateProductWeight;
 
@@ -38,5 +39,7 @@ class InitCore {
       $adminSettings = new RenderAdminSettings( $this->plugin_name, $this->plugin_version );
       $adminSettings->setHooks();
     }
+
+    new SaveSettingsAjax();
   }
 }
