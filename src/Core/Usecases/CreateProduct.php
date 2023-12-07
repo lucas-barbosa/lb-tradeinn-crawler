@@ -35,14 +35,17 @@ class CreateProduct {
 
 		$this->loadParams();
 			
-    $product = $this->getWoocommerceProduct( $productData->getId(), $productData->getStoreName(), $productData->isVariable() );
+    $result = $this->getWoocommerceProduct( $productData->getId(), $productData->getStoreName(), $productData->isVariable() );
+		$product = $result[0];
+		$is_new_product = $result[1];
+		
     $product = $this->setRequiredData( $product, $productData );
 
     $this->saveProduct( $product, true, $productData->getPrice(), $productData->getAvailability() );
 
     $product = $this->setAdditionalData( $product, $productData );
 
-		$this->setSyncData( $product );
+		$this->setSyncData( $product, $is_new_product );
 
 		do_action( 'lb_tradeinn_product_created', [ $product->get_id(), $productData->getParentStoreProps() ]);
   }
@@ -354,8 +357,10 @@ class CreateProduct {
 
   private function getWoocommerceProduct( string $id, string $store, bool $isVariable ) {
     $productId = IdMapper::getProductId( $id, $store );
-		
+		$new_product = true;
+
 		if ( $productId ) {
+			$new_product = false;
 			$product = wc_get_product( $productId );		
 
 			if ( $product && 0 < $product->get_parent_id() ) {
@@ -364,10 +369,10 @@ class CreateProduct {
 		}
 
     if ( $isVariable ) {
-			return new \WC_Product_Variable((int) $productId );
+			return [new \WC_Product_Variable((int) $productId ), $new_product];
 		}
 
-		return new \WC_Product((int) $productId );
+		return [new \WC_Product((int) $productId ), $new_product];
   }
 
   private function getWoocommerceVariation( $product, $variationAttributes ) {
@@ -511,16 +516,9 @@ class CreateProduct {
     return $product;
   }
 
-	private function setSyncData( $product ) {
-		if ( $product->get_weight() > 0 ) {
-			$sync_to = apply_filters( '_lb_sync_created_product_to', [] );
-
-			if ( ! empty( $sync_to ) ) {
-				$product->update_meta_data( '_lb_woo_multistore_reply_to', $sync_to );
-				$product->update_meta_data( '_lb_woo_multistore_manage_child_stock', $sync_to );
-				$product->update_meta_data( '_lb_woo_multistore_should_enqueue', 'yes' );
-				$product->save();
-			}
+	private function setSyncData( $product, $is_new_product ) {
+		if ( $product->get_weight() > 0 && $is_new_product ) {
+			do_action( 'lb_crawler_creating_product', $product );
 		}
 	}
 
