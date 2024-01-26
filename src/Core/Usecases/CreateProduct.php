@@ -6,6 +6,7 @@ use Exception;
 use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductEntity;
 use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductVariationEntity;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\CrawlerPostMetaData;
+use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\CrawlerTermMetaData;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\IdMapper;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\SettingsData;
 
@@ -121,7 +122,7 @@ class CreateProduct {
 
       if ( ! is_wp_error( $category ) && isset( $category['term_id'] ) ) {
 				IdMapper::setTermId( $category['term_id'], $tradeInnCategory['id'] );
-        update_term_meta( $category['term_id'], '_tradeinn_term_name_' . $categoryCacheName, $categoryName );
+        CrawlerTermMetaData::insert( $category['term_id'], '_tradeinn_term_name_' . $categoryCacheName, $categoryName );
 
         $parentId = $category['term_id'];
         $categoryIds[] = $parentId;
@@ -182,7 +183,7 @@ class CreateProduct {
 				}
 
         if ( ! is_wp_error( $term ) &&  isset( $term['term_id'] ) && ! empty( $item['id'] ) ) {
-          update_term_meta( $term['term_id'], '_tradeinn_term_name_' . $item['id'], $item['id'] );
+          CrawlerTermMetaData::insert( $term['term_id'], '_tradeinn_term_name_' . $item['id'], $item['id'] );
 					do_action( 'lb_multi_language_translate_term', $term['term_id'], 'ingles', trim( $originalValue ), '', sanitize_title( $originalValue ) );
         }        
 			}

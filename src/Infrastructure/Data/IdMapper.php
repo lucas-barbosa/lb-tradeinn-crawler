@@ -31,51 +31,30 @@ class IdMapper {
   }
 
 	static function getTermId( $name ) {
-    global $wpdb;
+    $meta = CrawlerTermMetaData::getByMetaKey( '_tradeinn_term_name_' . $name );
 
-		$meta = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}termmeta WHERE meta_key = %s",
-				'_tradeinn_term_name_' . $name
-			)
-		);
-
-		if ( ! empty( $meta->term_id ) ) {
-			return $meta->term_id;
+		if ( ! empty( $meta ) && isset( $meta['term_id'] ) ) {
+			return $meta['term_id'];
 		}
 
 		return false;
   }
 
 	static function getTermByKey( $key ) {
-    global $wpdb;
+    $meta = CrawlerTermMetaData::getByMetaKey( $key );
 
-		$meta = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}termmeta WHERE meta_key = %s",
-				$key
-			)
-		);
-
-		if ( ! empty( $meta->term_id ) ) {
-			return $meta->term_id;
+		if ( ! empty( $meta ) && isset( $meta['term_id'] ) ) {
+			return $meta['term_id'];
 		}
 
 		return '';
   }
 
 	static function getTermById( $id ) {
-    global $wpdb;
+    $meta = CrawlerTermMetaData::getByMetaKey( '_tradeinn_term_id_' . $id );
 
-		$meta = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}termmeta WHERE meta_key = %s",
-				'_tradeinn_term_id_' . $id
-			)
-		);
-
-		if ( ! empty( $meta->term_id ) ) {
-			return $meta->term_id;
+		if ( ! empty( $meta ) && isset( $meta['term_id'] ) ) {
+			return $meta['term_id'];
 		}
 
 		return false;
@@ -102,11 +81,11 @@ class IdMapper {
 	}
 
 	static function setTermId( $term, $id ) {
-		update_term_meta( $term, '_tradeinn_term_id_' . $id, $id );
+		CrawlerTermMetaData::insert( $term, '_tradeinn_term_id_' . $id, $id );
 	}
 
 	static function setTermKey( $term, $key ) {
-		update_term_meta( $term, $key, $key );
+		CrawlerTermMetaData::insert( $term, $key, $key );
 	}
 
 	static function setAttributeId( $tradeinnId, $id ) {
