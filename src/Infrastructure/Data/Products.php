@@ -4,15 +4,8 @@ namespace LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data;
 
 class Products {
   private static function checkUrlExistsInMeta( $storeName, $productId ) {
-    global $wpdb;
-
-    $query = "SELECT * from {$wpdb->prefix}postmeta where meta_key = '_tradeinn_props' and meta_value like %s";
-
-    $query = $wpdb->prepare( $query, '%"storeName"%"' . $storeName . '"%"productId"%"' . $productId . '"%' );
-
-    $results = $wpdb->get_results( $query, ARRAY_A );
-
-    return count( $results ) > 0;
+    $meta = CrawlerPostMetaData::getByMetaLike( '_tradeinn_props', '%"storeName"%"' . $storeName . '"%"productId"%"' . $productId . '"%' );
+		return !empty( $meta ) && !is_null( $meta );
   }
 
   static function isAlreadyCrawled( $storeName, $productId ) {

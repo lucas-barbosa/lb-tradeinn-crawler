@@ -2,6 +2,7 @@
 
 namespace LucasBarbosa\LbTradeinnCrawler\Core\Usecases;
 
+use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\CrawlerPostMetaData;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\IdMapper;
 
 class Utils {
@@ -231,8 +232,7 @@ class Utils {
 			return 0;
 		}
 
-		update_post_meta( $id, '_barrabes_attachment_' . $key,  $key );
-
+		CrawlerPostMetaData::insert( $id, '_tradeinn_attachment_' . $key,  $key );
 		return $id;
   }
 }

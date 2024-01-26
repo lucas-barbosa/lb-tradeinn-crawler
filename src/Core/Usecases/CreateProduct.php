@@ -5,6 +5,7 @@ namespace LucasBarbosa\LbTradeinnCrawler\Core\Usecases;
 use Exception;
 use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductEntity;
 use LucasBarbosa\LbTradeinnCrawler\Core\Entities\ProductVariationEntity;
+use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\CrawlerPostMetaData;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\IdMapper;
 use LucasBarbosa\LbTradeinnCrawler\Infrastructure\Data\SettingsData;
 
@@ -39,13 +40,11 @@ class CreateProduct {
 		$product = $result[0];
 		$is_new_product = $result[1];
 		
-    $product = $this->setRequiredData( $product, $productData );
+    $product = $this->setRequiredData( $product, $productData, $is_new_product );
 
     $this->saveProduct( $product, true, $productData->getPrice(), $productData->getAvailability() );
 
     $product = $this->setAdditionalData( $product, $productData );
-
-		$this->setSyncData( $product, $is_new_product );
 
 		do_action( 'lb_tradeinn_product_created', [ $product->get_id(), $productData->getParentStoreProps() ]);
   }
@@ -231,7 +230,7 @@ class CreateProduct {
 			$productVariation->set_sku( $variationSku );
 		}
 
-		$productVariation->update_meta_data( '_tradeinn_variation_id_' . $variation->getId(), $storeName );
+		CrawlerPostMetaData::insert( $productVariation->get_id(), '_tradeinn_variation_id_' . $variation->getId(), $storeName );
 		$productVariation->set_attributes( $attributes );
 
 		$price = $variation->getPrice();
@@ -425,7 +424,7 @@ class CreateProduct {
     if ( $productData->isVariable() ) {
       $this->createVariations( $product, $variations, $productData->getStoreName() );
     } else if ( count( $variations ) === 1 ) {
-			update_post_meta( $product->get_id(), '_tradeinn_variation_id_' . $variations[0]->getId(), $productData->getStoreName() );
+			CrawlerPostMetaData::insert( $product->get_id(), '_tradeinn_variation_id_' . $variations[0]->getId(), $productData->getStoreName() );
 		}
 
     return $product;
@@ -481,8 +480,8 @@ class CreateProduct {
 
   private function setMetaData( $product, ProductEntity $productData ) {
     $product->update_meta_data( '_lb_gf_gtin', $productData->getEan() );
-    $product->update_meta_data( '_tradeinn_product_id_' . $productData->getId(), $productData->getStoreName() );
-    $product->update_meta_data( '_tradeinn_props', $productData->getParentStoreProps() );
+    CrawlerPostMetaData::insert( $product->get_id(), '_tradeinn_product_id_' . $productData->getId(), $productData->getStoreName() );
+    CrawlerPostMetaData::insert( $product->get_id(), '_tradeinn_props', $productData->getParentStoreProps() );
     return $product;
   }
 
@@ -494,7 +493,7 @@ class CreateProduct {
 		do_action( 'lb_multi_inventory_set_stock', $product->get_id(), $this->stock, $price, $stockStatus, $product );
 	}
 
-  private function setRequiredData( $product, ProductEntity $productData ) {
+  private function setRequiredData( $product, ProductEntity $productData, $is_new_product ) {
     $title = $productData->getBrand() . ' ' . $productData->getTitle();
 
     $product->set_name( trim( $title ) );
@@ -512,12 +511,21 @@ class CreateProduct {
     $product = $this->setMetaData( $product, $productData );
 
     $this->setPriceAndStock( $product, $productData->getPrice(), $productData->getAvailability() );
+		$this->setSyncData( $product, $is_new_product );
 
     return $product;
   }
 
 	private function setSyncData( $product, $is_new_product ) {
 		if ( $product->get_weight() > 0 && $is_new_product ) {
+			$sync_to = apply_filters( '_lb_sync_created_product_to', [] );
+
+			if ( ! empty( $sync_to ) ) {
+				$product->update_meta_data( '_lb_woo_multistore_reply_to', $sync_to );
+				$product->update_meta_data( '_lb_woo_multistore_manage_child_stock', $sync_to );
+				$product->update_meta_data( '_lb_woo_multistore_should_enqueue', 'yes' );
+			}
+			
 			do_action( 'lb_crawler_creating_product', $product );
 		}
 	}
