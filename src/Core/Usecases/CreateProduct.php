@@ -417,6 +417,9 @@ class CreateProduct {
   }
 
   private function setAdditionalData( $product, ProductEntity $productData ) {
+		CrawlerPostMetaData::insert( $product->get_id(), '_tradeinn_product_id_' . $productData->getId(), $productData->getStoreName() );
+    CrawlerPostMetaData::insert( $product->get_id(), '_tradeinn_props', $productData->getParentStoreProps() );
+
     $product = $this->setBrand( $product, $productData->getBrand() );
     $product = $this->setAttributes( $product, $productData->getAttributes() );
     
@@ -481,8 +484,6 @@ class CreateProduct {
 
   private function setMetaData( $product, ProductEntity $productData ) {
     $product->update_meta_data( '_lb_gf_gtin', $productData->getEan() );
-    CrawlerPostMetaData::insert( $product->get_id(), '_tradeinn_product_id_' . $productData->getId(), $productData->getStoreName() );
-    CrawlerPostMetaData::insert( $product->get_id(), '_tradeinn_props', $productData->getParentStoreProps() );
     return $product;
   }
 
