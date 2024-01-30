@@ -41,9 +41,10 @@ class CreateProduct {
 		$product = $result[0];
 		$is_new_product = $result[1];
 		
-    $product = $this->setRequiredData( $product, $productData, $is_new_product );
+    $product = $this->setRequiredData( $product, $productData );
 
     $this->saveProduct( $product, true, $productData->getPrice(), $productData->getAvailability() );
+		$this->setSyncData( $product, $is_new_product );
 
     $product = $this->setAdditionalData( $product, $productData );
 
@@ -495,7 +496,7 @@ class CreateProduct {
 		do_action( 'lb_multi_inventory_set_stock', $product->get_id(), $this->stock, $price, $stockStatus, $product );
 	}
 
-  private function setRequiredData( $product, ProductEntity $productData, $is_new_product ) {
+  private function setRequiredData( $product, ProductEntity $productData ) {
     $title = $productData->getBrand() . ' ' . $productData->getTitle();
 
     $product->set_name( trim( $title ) );
@@ -513,21 +514,13 @@ class CreateProduct {
     $product = $this->setMetaData( $product, $productData );
 
     $this->setPriceAndStock( $product, $productData->getPrice(), $productData->getAvailability() );
-		$this->setSyncData( $product, $is_new_product );
 
     return $product;
   }
 
 	private function setSyncData( $product, $is_new_product ) {
 		if ( $product->get_weight() > 0 && $is_new_product ) {
-			$sync_to = apply_filters( '_lb_sync_created_product_to', [] );
-
-			if ( ! empty( $sync_to ) ) {
-				$product->update_meta_data( '_lb_woo_multistore_reply_to', $sync_to );
-				$product->update_meta_data( '_lb_woo_multistore_manage_child_stock', $sync_to );
-				$product->update_meta_data( '_lb_woo_multistore_should_enqueue', 'yes' );
-			}
-			
+			do_action( 'lb_multistore_new_product_sync_props', $product->get_id() );
 			do_action( 'lb_crawler_creating_product', $product );
 		}
 	}
